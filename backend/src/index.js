@@ -11,10 +11,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const http = require('http');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// 创建 HTTP 服务器（用于 WebSocket）
+const server = http.createServer(app);
 
 // 中间件
 app.use(helmet()); // 安全头
@@ -34,14 +38,24 @@ app.get('/health', (req, res) => {
   });
 });
 
+// 初始化舞台系统 WebSocket 服务
+const StageWebSocketService = require('./services/stageService');
+const stageService = new StageWebSocketService(server);
+stageService.init();
+
 // API 路由
 const agentsRouter = require('./routes/agents');
 const tasksRouter = require('./routes/tasks');
 const workflowsRouter = require('./routes/workflows');
+const stageRouter = require('./routes/stage');
+
+// 设置舞台服务
+stageRouter.setStageService(stageService);
 
 app.use('/api/v1/agents', agentsRouter);
 app.use('/api/v1/tasks', tasksRouter);
 app.use('/api/v1/workflows', workflowsRouter);
+app.use('/api/stage', stageRouter); // 舞台系统 API
 
 // 404 处理
 app.use((req, res) => {
@@ -67,12 +81,13 @@ app.use((err, req, res, next) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Agent Company Backend 已启动`);
   console.log(`📍 端口：${PORT}`);
   console.log(`🌐 环境：${process.env.NODE_ENV || 'development'}`);
   console.log(`📡 健康检查：http://localhost:${PORT}/health`);
   console.log(`📚 API 文档：http://localhost:${PORT}/api/v1`);
+  console.log(`🎭 舞台 WebSocket: ws://localhost:${PORT}/ws/stage`);
 });
 
-module.exports = app;
+module.exports = { app, server };

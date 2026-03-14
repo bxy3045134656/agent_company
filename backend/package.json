@@ -29,7 +29,8 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pg": "^8.11.3",
-    "redis": "^4.6.10"
+    "redis": "^4.6.10",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
