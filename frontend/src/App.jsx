@@ -9,6 +9,9 @@ import Forum from './pages/Forum'
 import Monitor from './pages/Monitor'
 import StagePage from './pages/StagePage'
 import WorkflowList from './pages/WorkflowList'
+import IncomeStats from './pages/IncomeStats'
+import CostCalculation from './pages/CostCalculation'
+import ProfitAnalysis from './pages/ProfitAnalysis'
 import Header from './components/Header'
 import Sider from './components/Sider'
 
@@ -32,6 +35,9 @@ function App() {
               <Route path="/forum" element={<Forum />} />
               <Route path="/monitor" element={<Monitor />} />
               <Route path="/stage" element={<StagePage />} />
+              <Route path="/finance/income" element={<IncomeStats />} />
+              <Route path="/finance/cost" element={<CostCalculation />} />
+              <Route path="/finance/profit" element={<ProfitAnalysis />} />
             </Routes>
           </Content>
         </Layout>

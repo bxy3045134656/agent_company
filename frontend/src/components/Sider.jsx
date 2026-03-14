@@ -9,6 +9,9 @@ import {
   StarOutlined,
   AppstoreOutlined,
   ProjectOutlined,
+  DollarOutlined,
+  WalletOutlined,
+  ProfitOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -58,6 +61,32 @@ function Sider() {
       icon: <BarChartOutlined />,
       label: '📈 监控面板',
     },
+    {
+      key: 'divider2',
+      type: 'divider',
+    },
+    {
+      key: '/finance',
+      icon: <DollarOutlined />,
+      label: '💰 财务系统',
+      children: [
+        {
+          key: '/finance/income',
+          icon: <DollarOutlined />,
+          label: '📊 收入统计',
+        },
+        {
+          key: '/finance/cost',
+          icon: <WalletOutlined />,
+          label: '💸 成本计算',
+        },
+        {
+          key: '/finance/profit',
+          icon: <ProfitOutlined />,
+          label: '📈 利润分析',
+        },
+      ],
+    },
   ]
 
   return (
@@ -66,7 +95,11 @@ function Sider() {
         mode="inline"
         selectedKeys={[location.pathname]}
         items={menuItems}
-        onClick={({ key }) => navigate(key)}
+        onClick={({ key }) => {
+          if (!key.includes('/finance')) {
+            navigate(key)
+          }
+        }}
         style={{ height: '100%', borderRight: 0 }}
       />
     </AntSider>

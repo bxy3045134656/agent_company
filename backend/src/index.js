@@ -48,6 +48,7 @@ const agentsRouter = require('./routes/agents');
 const tasksRouter = require('./routes/tasks');
 const workflowsRouter = require('./routes/workflows');
 const stageRouter = require('./routes/stage');
+const financeRouter = require('./routes/finance');
 
 // 设置舞台服务
 stageRouter.setStageService(stageService);
@@ -56,6 +57,7 @@ app.use('/api/v1/agents', agentsRouter);
 app.use('/api/v1/tasks', tasksRouter);
 app.use('/api/v1/workflows', workflowsRouter);
 app.use('/api/stage', stageRouter); // 舞台系统 API
+app.use('/api/v1/finance', financeRouter); // 财务系统 API
 
 // 404 处理
 app.use((req, res) => {
