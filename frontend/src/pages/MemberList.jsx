@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Row, Col, Table, Tag, Button, Avatar, Space, Typography, Modal, Statistic, Progress, Descriptions, Badge } from 'antd'
+import { Card, Row, Col, Table, Tag, Button, Avatar, Space, Typography, Statistic, Progress, Badge } from 'antd'
 import {
   TeamOutlined,
   UserOutlined,
@@ -52,8 +52,6 @@ const TEAM_MEMBERS = [
 function MemberList() {
   const navigate = useNavigate()
   const [members, setMembers] = useState(TEAM_MEMBERS)
-  const [selectedMember, setSelectedMember] = useState(null)
-  const [detailModalVisible, setDetailModalVisible] = useState(false)
 
   // 获取状态标签
   const getStatusBadge = (status) => {
@@ -66,10 +64,9 @@ function MemberList() {
     return <Badge color={s.color} text={s.text} />
   }
 
-  // 查看成员详情
+  // 查看成员详情 - 跳转到个人面板
   const handleViewDetail = (record) => {
-    setSelectedMember(record)
-    setDetailModalVisible(true)
+    navigate(`/members/${record.id}`)
   }
 
   // 成员表格列
@@ -220,88 +217,6 @@ function MemberList() {
         />
       </Card>
 
-      {/* 成员详情模态框 */}
-      <Modal
-        title={
-          <Space>
-            <Avatar size="large" style={{ backgroundColor: selectedMember?.avatar }}>
-              {selectedMember?.emoji}
-            </Avatar>
-            <div>
-              <div style={{ fontWeight: 600 }}>{selectedMember?.name}</div>
-              <Text type="secondary">{selectedMember?.role}</Text>
-            </div>
-          </Space>
-        }
-        open={detailModalVisible}
-        onCancel={() => setDetailModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setDetailModalVisible(false)}>
-            关闭
-          </Button>,
-          <Button key="config" type="primary" icon={<FileTextOutlined />}>
-            查看配置文件
-          </Button>,
-        ]}
-        width={800}
-      >
-        {selectedMember && (
-          <div>
-            {/* 工作状态 */}
-            <Card title="📊 工作状态" size="small" style={{ marginBottom: 16 }}>
-              <Row gutter={[16, 16]}>
-                <Col span={8}>
-                  <Statistic 
-                    title="总任务" 
-                    value={selectedMember.tasks} 
-                    prefix={<CheckSquareOutlined />}
-                  />
-                </Col>
-                <Col span={8}>
-                  <Statistic 
-                    title="已完成" 
-                    value={selectedMember.completed} 
-                    prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#52c41a' }}
-                  />
-                </Col>
-                <Col span={8}>
-                  <Statistic 
-                    title="进行中" 
-                    value={selectedMember.tasks - selectedMember.completed} 
-                    prefix={<ClockCircleOutlined />}
-                    valueStyle={{ color: '#faad14' }}
-                  />
-                </Col>
-              </Row>
-            </Card>
-
-            {/* 配置文件 */}
-            <Card title="📁 配置文件" size="small">
-              <Space direction="vertical" style={{ width: '100%' }}>
-                {selectedMember.files.map((file, index) => (
-                  <Card 
-                    key={index}
-                    hoverable
-                    size="small"
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <Space>
-                      <FileTextOutlined style={{ color: '#667eea', fontSize: 20 }} />
-                      <div>
-                        <div style={{ fontWeight: 500 }}>{file}</div>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                          点击打开配置文件
-                        </Text>
-                      </div>
-                    </Space>
-                  </Card>
-                ))}
-              </Space>
-            </Card>
-          </div>
-        )}
-      </Modal>
     </div>
   )
 }
