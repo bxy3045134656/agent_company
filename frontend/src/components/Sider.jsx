@@ -7,6 +7,7 @@ import {
   FormOutlined,
   BarChartOutlined,
   StarOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -19,8 +20,13 @@ function Sider() {
   const menuItems = [
     {
       key: '/dashboard',
-      icon: <StarOutlined />,
-      label: '🎬 舞台',
+      icon: <DashboardOutlined />,
+      label: '📊 仪表盘',
+    },
+    {
+      key: '/stage',
+      icon: <AppstoreOutlined />,
+      label: '🎭 舞台系统',
     },
     {
       key: '/members',
