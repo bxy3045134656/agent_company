@@ -1,5 +1,5 @@
 import React from 'react'
-import { Layout, Menu } from 'antd'
+import { Layout, Menu, Badge } from 'antd'
 import {
   DashboardOutlined,
   TeamOutlined,
@@ -9,14 +9,30 @@ import {
   StarOutlined,
   AppstoreOutlined,
   ProjectOutlined,
+  BellOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
+import notificationService from '../services/notificationService'
 
 const { Sider: AntSider } = Layout
 
 function Sider() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [unreadCount, setUnreadCount] = React.useState(0)
+
+  // 获取未读数量
+  React.useEffect(() => {
+    notificationService.connect()
+    const fetchUnread = async () => {
+      const count = await notificationService.getUnreadCount()
+      setUnreadCount(count)
+    }
+    fetchUnread()
+    
+    const interval = setInterval(fetchUnread, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const menuItems = [
     {
@@ -57,6 +73,15 @@ function Sider() {
       key: '/monitor',
       icon: <BarChartOutlined />,
       label: '📈 监控面板',
+    },
+    {
+      key: '/notifications',
+      icon: (
+        <Badge count={unreadCount > 99 ? '99+' : unreadCount} offset={[-5, 5]}>
+          <BellOutlined />
+        </Badge>
+      ),
+      label: '🔔 通知中心',
     },
   ]
 
