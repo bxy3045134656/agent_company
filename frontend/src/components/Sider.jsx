@@ -8,6 +8,7 @@ import {
   BarChartOutlined,
   StarOutlined,
   AppstoreOutlined,
+  ProjectOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -37,6 +38,11 @@ function Sider() {
       key: '/tasks',
       icon: <CheckSquareOutlined />,
       label: '📋 任务管理',
+    },
+    {
+      key: '/workflows',
+      icon: <ProjectOutlined />,
+      label: '⚡ 工作流管理',
     },
     {
       key: 'divider1',
