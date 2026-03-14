@@ -1,0 +1,120 @@
+/* 通知中心页面样式 */
+
+.notifications-page {
+  min-height: 100vh;
+  background: #f0f2f5;
+  padding: 24px;
+}
+
+.notifications-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notifications-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notifications-stats {
+  margin-bottom: 24px;
+}
+
+.notifications-stats .ant-card {
+  border-radius: 8px;
+}
+
+.notification-filters {
+  margin-bottom: 24px;
+}
+
+.notification-list-item {
+  padding: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: all 0.3s;
+  background: #fff;
+}
+
+.notification-list-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.notification-list-item.unread {
+  border-left: 4px solid #1890ff;
+  background-color: #e6f7ff;
+}
+
+.notification-list-item.read {
+  opacity: 0.9;
+  background-color: #fafafa;
+}
+
+.notification-icon-avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 50%;
+  font-size: 24px;
+}
+
+.notification-item-content {
+  margin-top: 8px;
+}
+
+.notification-item-time {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .notifications-page {
+    padding: 12px;
+  }
+
+  .notifications-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .notifications-stats .ant-col {
+    margin-bottom: 12px;
+  }
+
+  .notification-filters .ant-space {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .notification-filters .ant-select,
+  .notification-filters .ant-input {
+    width: 100% !important;
+  }
+}
+
+/* 动画效果 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-list-item {
+  animation: slideIn 0.3s ease-out;
+}
