@@ -1,0 +1,297 @@
+/**
+ * 通知系统前端服务
+ * 实现 WebSocket 连接和通知管理
+ * 
+ * @author 小软 🤖
+ * @version 1.0.0
+ */
+
+const API_BASE_URL = 'http://localhost:3001/api/v1';
+const WS_URL = 'ws://localhost:3001/ws/notifications';
+
+class NotificationService {
+  constructor() {
+    this.ws = null;
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 5;
+    this.reconnectDelay = 3000;
+    this.listeners = new Map();
+    this.connected = false;
+  }
+
+  /**
+   * 连接 WebSocket
+   */
+  connect() {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      console.log('🔔 WebSocket 已连接');
+      return;
+    }
+
+    try {
+      this.ws = new WebSocket(WS_URL);
+
+      this.ws.onopen = () => {
+        console.log('🔔 已连接到通知系统');
+        this.connected = true;
+        this.reconnectAttempts = 0;
+        
+        // 订阅所有类型的通知
+        this.subscribe(['all']);
+      };
+
+      this.ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          this.handleMessage(message);
+        } catch (error) {
+          console.error('❌ 解析通知消息失败:', error);
+        }
+      };
+
+      this.ws.onclose = () => {
+        console.log('🔔 通知连接已关闭');
+        this.connected = false;
+        this.attemptReconnect();
+      };
+
+      this.ws.onerror = (error) => {
+        console.error('❌ WebSocket 错误:', error);
+        this.connected = false;
+      };
+    } catch (error) {
+      console.error('❌ 创建 WebSocket 连接失败:', error);
+      this.attemptReconnect();
+    }
+  }
+
+  /**
+   * 尝试重连
+   */
+  attemptReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      console.log(`🔄 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      setTimeout(() => this.connect(), this.reconnectDelay);
+    } else {
+      console.error('❌ 达到最大重连次数，停止重连');
+    }
+  }
+
+  /**
+   * 处理收到的消息
+   */
+  handleMessage(message) {
+    const { type, data } = message;
+
+    // 触发对应的监听器
+    if (this.listeners.has(type)) {
+      this.listeners.get(type).forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error('❌ 通知监听器错误:', error);
+        }
+      });
+    }
+
+    // 触发通用监听器
+    if (this.listeners.has('all')) {
+      this.listeners.get('all').forEach(callback => {
+        try {
+          callback(message);
+        } catch (error) {
+          console.error('❌ 通用监听器错误:', error);
+        }
+      });
+    }
+  }
+
+  /**
+   * 添加监听器
+   */
+  on(type, callback) {
+    if (!this.listeners.has(type)) {
+      this.listeners.set(type, []);
+    }
+    this.listeners.get(type).push(callback);
+    return () => this.off(type, callback);
+  }
+
+  /**
+   * 移除监听器
+   */
+  off(type, callback) {
+    if (this.listeners.has(type)) {
+      const index = this.listeners.get(type).indexOf(callback);
+      if (index > -1) {
+        this.listeners.get(type).splice(index, 1);
+      }
+    }
+  }
+
+  /**
+   * 订阅通知类型
+   */
+  subscribe(types) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'subscribe',
+        payload: { types }
+      }));
+    }
+  }
+
+  /**
+   * 取消订阅
+   */
+  unsubscribe(type) {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'unsubscribe',
+        payload: { type }
+      }));
+    }
+  }
+
+  /**
+   * 发送心跳
+   */
+  heartbeat() {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({
+        type: 'heartbeat'
+      }));
+    }
+  }
+
+  /**
+   * 断开连接
+   */
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+      this.connected = false;
+    }
+  }
+
+  /**
+   * 获取通知列表
+   */
+  async getNotifications(params = {}) {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const response = await fetch(`${API_BASE_URL}/notifications${queryParams ? '?' + queryParams : ''}`);
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('❌ 获取通知失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取未读通知数量
+   */
+  async getUnreadCount() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/unread/count`);
+      const result = await response.json();
+      return result.data.count;
+    } catch (error) {
+      console.error('❌ 获取未读数失败:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * 创建通知
+   */
+  async createNotification(notification) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(notification)
+      });
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('❌ 创建通知失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 标记通知为已读
+   */
+  async markAsRead(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+        method: 'PUT'
+      });
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('❌ 标记已读失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量标记为已读
+   */
+  async markAllAsRead(ids = null) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/read/all`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ids })
+      });
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('❌ 批量标记失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 删除通知
+   */
+  async deleteNotification(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/${id}`, {
+        method: 'DELETE'
+      });
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('❌ 删除通知失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取通知统计
+   */
+  async getStats() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/stats`);
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('❌ 获取统计失败:', error);
+      throw error;
+    }
+  }
+}
+
+// 导出单例
+const notificationService = new NotificationService();
+export default notificationService;

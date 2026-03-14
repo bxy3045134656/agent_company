@@ -43,19 +43,29 @@ const StageWebSocketService = require('./services/stageService');
 const stageService = new StageWebSocketService(server);
 stageService.init();
 
+// 初始化通知系统 WebSocket 服务
+const NotificationWebSocketService = require('./services/notificationService');
+const notificationService = new NotificationWebSocketService(server);
+notificationService.init();
+
 // API 路由
 const agentsRouter = require('./routes/agents');
 const tasksRouter = require('./routes/tasks');
 const workflowsRouter = require('./routes/workflows');
 const stageRouter = require('./routes/stage');
+const notificationsRouter = require('./routes/notifications');
 
 // 设置舞台服务
 stageRouter.setStageService(stageService);
+
+// 设置通知服务
+notificationsRouter.setNotificationService(notificationService);
 
 app.use('/api/v1/agents', agentsRouter);
 app.use('/api/v1/tasks', tasksRouter);
 app.use('/api/v1/workflows', workflowsRouter);
 app.use('/api/stage', stageRouter); // 舞台系统 API
+app.use('/api/v1/notifications', notificationsRouter); // 通知系统 API
 
 // 404 处理
 app.use((req, res) => {

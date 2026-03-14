@@ -9,6 +9,7 @@ import Forum from './pages/Forum'
 import Monitor from './pages/Monitor'
 import StagePage from './pages/StagePage'
 import WorkflowList from './pages/WorkflowList'
+import NotificationsPage from './pages/NotificationsPage'
 import Header from './components/Header'
 import Sider from './components/Sider'
 
@@ -32,6 +33,7 @@ function App() {
               <Route path="/forum" element={<Forum />} />
               <Route path="/monitor" element={<Monitor />} />
               <Route path="/stage" element={<StagePage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
             </Routes>
           </Content>
         </Layout>
