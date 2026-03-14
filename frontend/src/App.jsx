@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from 'antd'
 import Dashboard from './pages/Dashboard'
 import MemberList from './pages/MemberList'
+import MemberProfile from './pages/MemberProfile'
 import TaskList from './pages/TaskList'
 import Forum from './pages/Forum'
 import Monitor from './pages/Monitor'
@@ -24,6 +25,7 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/members" element={<MemberList />} />
+              <Route path="/members/:id" element={<MemberProfile />} />
               <Route path="/tasks" element={<TaskList />} />
               <Route path="/forum" element={<Forum />} />
               <Route path="/monitor" element={<Monitor />} />
