@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, Row, Col, Table, Tag, Space, Typography, Statistic, Progress, DatePicker, Button, Input } from 'antd'
 import {
   DollarOutlined,
-  TrendUpOutlined,
+  RiseOutlined,
   PieChartOutlined,
   DownloadOutlined,
 } from '@ant-design/icons'
@@ -292,7 +292,7 @@ function IncomeStats() {
       {/* 图表区域 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={16}>
-          <Card title={<><TrendUpOutlined /> 收入趋势</>}>
+          <Card title={<><RiseOutlined /> 收入趋势</>}>
             <Line {...trendConfig} height={300} />
           </Card>
         </Col>

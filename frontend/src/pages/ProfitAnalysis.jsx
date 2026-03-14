@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, Row, Col, Table, Tag, Space, Typography, Statistic, Progress, DatePicker, Button, Alert } from 'antd'
 import {
-  ProfitOutlined,
+  LineChartOutlined,
   RiseOutlined,
   FallOutlined,
   DownloadOutlined,
@@ -90,7 +90,7 @@ function ProfitAnalysis() {
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <Title level={1} style={{ color: 'white', marginBottom: 8 }}>
-              <ProfitOutlined style={{ marginRight: 12 }} />
+              <LineChartOutlined style={{ marginRight: 12 }} />
               📈 利润分析
             </Title>
             <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 16 }}>
@@ -198,7 +198,7 @@ function ProfitAnalysis() {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title={<><ProfitOutlined /> 利润趋势</>}>
+          <Card title={<><LineChartOutlined /> 利润趋势</>}>
             <Line 
               data={profitData?.trend.map(item => ({
                 month: item.month,

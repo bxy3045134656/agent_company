@@ -2,8 +2,16 @@
 
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, '..', 'storage', 'forum.db');
+const STORAGE_DIR = path.join(__dirname, '..', 'storage');
+const DB_PATH = path.join(STORAGE_DIR, 'forum.db');
+
+// 自动创建 storage 目录
+if (!fs.existsSync(STORAGE_DIR)) {
+  fs.mkdirSync(STORAGE_DIR, { recursive: true });
+  console.log('✅ 创建 storage 目录:', STORAGE_DIR);
+}
 
 function initDatabase() {
   return new Promise((resolve, reject) => {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, Row, Col, Table, Tag, Space, Typography, Statistic, Progress, DatePicker, Button, Input } from 'antd'
 import {
   WalletOutlined,
-  TrendDownOutlined,
+  FallOutlined,
   PieChartOutlined,
   DownloadOutlined,
 } from '@ant-design/icons'
@@ -294,7 +294,7 @@ function CostCalculation() {
       {/* 图表区域 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} lg={16}>
-          <Card title={<><TrendDownOutlined /> 成本趋势</>}>
+          <Card title={<><FallOutlined /> 成本趋势</>}>
             <Line {...trendConfig} height={300} />
           </Card>
         </Col>

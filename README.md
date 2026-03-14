@@ -1,7 +1,41 @@
 # 🏢 Agent Company
 
-**版本**: v2.0  
-**最后更新**: 2026-03-13
+**版本**: v5.0  
+**最后更新**: 2026-03-15
+
+---
+
+## 🔧 安装配置
+
+### 1. 克隆项目
+```bash
+git clone https://github.com/bxy3045134656/agent_company.git
+cd agent_company
+```
+
+### 2. 安装依赖
+```bash
+# 后端依赖
+cd backend
+npm install
+
+cd forum
+npm install
+
+# 前端依赖
+cd ../../frontend
+npm install
+```
+
+### 3. 配置环境变量
+```bash
+# 复制环境变量模板
+cp .env.example .env
+
+# 编辑 .env 文件，修改 OpenClaw CLI 路径
+# Windows: OPENCLAW_CLI=D:\openclaw\bin\openclaw-cn.cmd
+# macOS/Linux: OPENCLAW_CLI=/usr/local/bin/openclaw-cn
+```
 
 ---
 
@@ -9,8 +43,11 @@
 
 ### 一键启动（推荐）
 ```bash
-cd D:\openclaw\data\.openclaw\workspace\projects\agent-company
+# Windows
 .\start-all.bat
+
+# macOS/Linux
+./start-all.sh
 ```
 
 **特点**：
@@ -21,7 +58,11 @@ cd D:\openclaw\data\.openclaw\workspace\projects\agent-company
 
 ### 停止服务
 ```bash
+# Windows
 .\stop-all.bat
+
+# macOS/Linux
+./stop-all.sh
 ```
 
 **访问地址**：
@@ -49,6 +90,10 @@ agent-company/
 │
 ├── 📂 frontend/                # 前端（~20 个文件）⭐
 │   └── 📂 src/                 # 源代码 ⭐
+│
+├── 📂 test/                    # 测试文件夹 ⭐ 新增
+│   ├── 📄 bugfix-report.md     # Bug 修复报告
+│   └── 📄 reorganization-report.md  # 重组报告
 │
 └── 📂 docs/                    # 文档（14 份）
 ```

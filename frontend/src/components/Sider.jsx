@@ -12,7 +12,7 @@ import {
   BellOutlined,
   DollarOutlined,
   WalletOutlined,
-  ProfitOutlined,
+  LineChartOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import notificationService from '../services/notificationService'
@@ -107,7 +107,7 @@ function Sider() {
         },
         {
           key: '/finance/profit',
-          icon: <ProfitOutlined />,
+          icon: <LineChartOutlined />,
           label: '📈 利润分析',
         },
       ],

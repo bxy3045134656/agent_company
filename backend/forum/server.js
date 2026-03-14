@@ -4,6 +4,8 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
+const http = require('http');
+const WebSocket = require('ws');
 const { initDatabase, DB_PATH } = require('./db/init');
 
 // v2.0: 设置时区为 Asia/Shanghai（中国上海）
@@ -15,8 +17,51 @@ function getShanghaiTime() {
 }
 
 const app = express();
+const server = http.createServer(app); // 创建 HTTP 服务器用于 WebSocket
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0'; // v2.0: 监听所有网卡，支持局域网访问
+
+// WebSocket 通知服务
+const wss = new WebSocket.Server({ server: server, path: '/ws/notifications' });
+const wsClients = new Set();
+
+// WebSocket 连接管理
+wss.on('connection', (ws) => {
+  console.log('🔔 新的通知连接');
+  wsClients.add(ws);
+  
+  ws.on('close', () => {
+    console.log('🔔 通知连接关闭');
+    wsClients.delete(ws);
+  });
+  
+  ws.on('error', (error) => {
+    console.error('❌ WebSocket 错误:', error);
+    wsClients.delete(ws);
+  });
+  
+  // 发送欢迎消息
+  ws.send(JSON.stringify({
+    type: 'connected',
+    message: '已连接到论坛通知系统',
+    timestamp: new Date().toISOString()
+  }));
+});
+
+// 广播通知到所有 WebSocket 客户端
+function broadcastNotification(notification) {
+  const message = JSON.stringify({
+    type: 'notification',
+    notification: notification,
+    timestamp: new Date().toISOString()
+  });
+  
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
 // v2.0: API 访问日志中间件
 app.use((req, res, next) => {
@@ -225,6 +270,24 @@ app.get('/api/comments/:id', (req, res) => {
   });
 });
 
+// 获取特定评论详情（带帖子信息）- 新增 API
+app.get('/api/posts/:postId/comments/:commentId', authenticate, (req, res) => {
+  const { postId, commentId } = req.params;
+
+  db.get(`
+    SELECT c.*, p.title as post_title 
+    FROM comments c 
+    LEFT JOIN posts p ON c.post_id = p.id 
+    WHERE c.id = ? AND c.post_id = ?
+  `, [parseInt(commentId), parseInt(postId)], (err, comment) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!comment) return res.status(404).json({ error: '评论不存在' });
+    
+    console.log(`[GET] Comment #${commentId} from post #${postId}`);
+    res.json({ success: true, comment });
+  });
+});
+
 // 获取帖子评论
 app.get('/api/posts/:id/comments', (req, res) => {
   const { id } = req.params;
@@ -253,21 +316,26 @@ app.post('/api/posts/:id/comments', authenticate, (req, res) => {
 
     const commentId = this.lastID;
     
-    // 检测@提及并创建通知（v2.0 增强版：包含完整信息）
-    console.log('[DEBUG] Checking mentions in:', content);
-    const mentions = content.match(/@([\w\u4e00-\u9fa5]+)/g);
-    console.log('[DEBUG] Checking mentions in comment:', content);
-    console.log('[DEBUG] Found mentions:', mentions);
-    if (mentions) {
-      // 获取帖子标题
-      db.get('SELECT title FROM posts WHERE id = ?', [parseInt(id)], (err, postData) => {
-        const postTitle = postData ? postData.title : '无标题';
-        
+    // 获取帖子信息（用于通知发帖人）
+    db.get('SELECT title, author as post_author FROM posts WHERE id = ?', [parseInt(id)], (err, postData) => {
+      if (err || !postData) {
+        console.error('[ERROR] Get post failed:', err);
+        return;
+      }
+      
+      const postTitle = postData.title || '无标题';
+      const postAuthor = postData.post_author;
+      
+      // 检测@提及
+      const mentions = content.match(/@([\w\u4e00-\u9fa5]+)/g);
+      
+      if (mentions && mentions.length > 0) {
+        // 有@提及：只通知被@的人（不通知发帖人）
+        console.log('[DEBUG] Found mentions:', mentions);
         mentions.forEach(mention => {
           const mentionedUser = mention.slice(1);
           if (mentionedUser !== author) {
             console.log('[DEBUG] Creating notification for:', mentionedUser);
-            // 先查询用户
             db.get(`SELECT id, username FROM users WHERE username = ? OR display_name = ?`, [mentionedUser, mentionedUser], (err, user) => {
               if (err || !user) {
                 console.error('[ERROR] User not found:', mentionedUser, err);
@@ -279,13 +347,57 @@ app.post('/api/posts/:id/comments', authenticate, (req, res) => {
                 VALUES (?, ?, ?, ?, 'mention', ?, 0, ?, ?, 'normal')
               `, [user.id, user.username, parseInt(id), commentId, `${author} 在评论中提到了你`, author, postTitle], function(err) {
                 if (err) console.error('[ERROR] Insert notification failed:', err);
-                else console.log('[OK] Notification created for:', mentionedUser);
+                else {
+                  console.log('[OK] Notification created for:', mentionedUser);
+                  // 广播通知到 WebSocket 客户端
+                  broadcastNotification({
+                    user_id: user.id,
+                    username: user.username,
+                    post_id: parseInt(id),
+                    comment_id: commentId,
+                    type: 'mention',
+                    content: `${author} 在评论中提到了你`,
+                    author: author,
+                    post_title: postTitle
+                  });
+                }
               });
             });
           }
         });
-      });
-    }
+      } else {
+        // 没有@提及：默认通知发帖人（如果发帖人不是评论者自己）
+        if (postAuthor !== author) {
+          console.log('[DEBUG] No mentions, notifying post author:', postAuthor);
+          db.get(`SELECT id, username FROM users WHERE username = ?`, [postAuthor], (err, user) => {
+            if (err || !user) {
+              console.error('[ERROR] Post author not found:', postAuthor, err);
+              return;
+            }
+            db.run(`
+              INSERT INTO notifications (user_id, username, post_id, comment_id, type, content, is_read, author, post_title, task_priority)
+              VALUES (?, ?, ?, ?, 'comment', ?, 0, ?, ?, 'normal')
+            `, [user.id, user.username, parseInt(id), commentId, `${author} 评论了你的帖子`, author, postTitle], function(err) {
+              if (err) console.error('[ERROR] Insert notification failed:', err);
+              else {
+                console.log('[OK] Notification created for post author:', postAuthor);
+                // 广播通知到 WebSocket 客户端
+                broadcastNotification({
+                  user_id: user.id,
+                  username: user.username,
+                  post_id: parseInt(id),
+                  comment_id: commentId,
+                  type: 'comment',
+                  content: `${author} 评论了你的帖子`,
+                  author: author,
+                  post_title: postTitle
+                });
+              }
+            });
+          });
+        }
+      }
+    });
 
     res.json({
       success: true,
@@ -318,12 +430,21 @@ app.post('/api/posts/:id/reply', authenticate, (req, res) => {
 
     const commentId = this.lastID;
     
-    // 检测@提及并创建通知
-    const mentions = content.match(/@([\w\u4e00-\u9fa5]+)/g);
-    if (mentions) {
-      db.get('SELECT title FROM posts WHERE id = ?', [parseInt(id)], (err, postData) => {
-        const postTitle = postData ? postData.title : '无标题';
-        
+    // 获取帖子信息
+    db.get('SELECT title, author as post_author FROM posts WHERE id = ?', [parseInt(id)], (err, postData) => {
+      if (err || !postData) {
+        console.error('[ERROR] Get post failed:', err);
+        return;
+      }
+      
+      const postTitle = postData.title || '无标题';
+      const postAuthor = postData.post_author;
+      
+      // 检测@提及
+      const mentions = content.match(/@([\w\u4e00-\u9fa5]+)/g);
+      
+      if (mentions && mentions.length > 0) {
+        // 有@提及：只通知被@的人
         mentions.forEach(mention => {
           const mentionedUser = mention.slice(1);
           if (mentionedUser !== author) {
@@ -334,12 +455,53 @@ app.post('/api/posts/:id/reply', authenticate, (req, res) => {
                 VALUES (?, ?, ?, ?, 'mention', ?, 0, ?, ?, 'normal')
               `, [user.id, user.username, parseInt(id), commentId, `${author} 在回复中提到了你`, author, postTitle], function(err) {
                 if (err) console.error('[ERROR] Insert notification failed:', err);
+                else {
+                  console.log('[OK] Notification created for:', mentionedUser);
+                  // 广播通知到 WebSocket 客户端
+                  broadcastNotification({
+                    user_id: user.id,
+                    username: user.username,
+                    post_id: parseInt(id),
+                    comment_id: commentId,
+                    type: 'mention',
+                    content: `${author} 在回复中提到了你`,
+                    author: author,
+                    post_title: postTitle
+                  });
+                }
               });
             });
           }
         });
-      });
-    }
+      } else {
+        // 没有@提及：默认通知发帖人
+        if (postAuthor !== author) {
+          db.get(`SELECT id, username FROM users WHERE username = ?`, [postAuthor], (err, user) => {
+            if (err || !user) return;
+            db.run(`
+              INSERT INTO notifications (user_id, username, post_id, comment_id, type, content, is_read, author, post_title, task_priority)
+              VALUES (?, ?, ?, ?, 'comment', ?, 0, ?, ?, 'normal')
+            `, [user.id, user.username, parseInt(id), commentId, `${author} 回复了你的帖子`, author, postTitle], function(err) {
+              if (err) console.error('[ERROR] Insert notification failed:', err);
+              else {
+                console.log('[OK] Notification created for post author:', postAuthor);
+                // 广播通知到 WebSocket 客户端
+                broadcastNotification({
+                  user_id: user.id,
+                  username: user.username,
+                  post_id: parseInt(id),
+                  comment_id: commentId,
+                  type: 'comment',
+                  content: `${author} 回复了你的帖子`,
+                  author: author,
+                  post_title: postTitle
+                });
+              }
+            });
+          });
+        }
+      }
+    });
 
     console.log(`[REPLY] Post #${id} reply by ${author} (comment_id: ${commentId})`);
     res.json({

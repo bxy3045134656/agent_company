@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { 
   Card, Row, Col, Avatar, Tag, Button, Space, Typography, Progress, 
   Descriptions, Statistic, Timeline, Switch, Select, Slider, Modal, 
-  message, Badge, Divider, Tooltip, Alert, Tabs, List, Icon 
+  message, Badge, Divider, Tooltip, Alert, Tabs, List
 } from 'antd'
 import {
   UserOutlined,

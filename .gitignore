@@ -1,10 +1,21 @@
 # Node.js 依赖
 node_modules/
 
+# Python 依赖
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
 # 数据库文件
 *.db
 *.db-shm
 *.db-wal
+storage/
 
 # 环境变量
 .env
@@ -43,3 +54,9 @@ tmp/
 temp/
 *.tmp
 *.temp
+
+# 处理过的通知记录
+processed_notifications.json
+
+# OpenClaw 会话记录
+*.jsonl

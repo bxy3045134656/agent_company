@@ -3,7 +3,7 @@ title Agent Company - Starting...
 
 REM ========================================
 REM   Agent Company - Start Script
-REM   Version: v2.0
+REM   Version: v2.1
 REM ========================================
 
 echo.
@@ -23,7 +23,18 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-REM Start services
+REM Check Python
+where python >nul 2>nul
+if %ERRORLEVEL% NEQ 0 (
+    echo [Warning] Python not found - Bridge service will not start
+)
+
+REM Create storage directory if not exists
+if not exist "%SCRIPT_DIR%backend\forum\storage" (
+    mkdir "%SCRIPT_DIR%backend\forum\storage"
+    echo [Pre] Created storage directory...
+)
+
 echo [1/4] Starting Agent API (port 3001)...
 cd /d "%SCRIPT_DIR%backend"
 start /min "Agent API" cmd /c "npm start"

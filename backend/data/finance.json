@@ -1,0 +1,88 @@
+{
+  "incomes": [
+    {
+      "id": "1",
+      "type": "project",
+      "category": "软件开发",
+      "amount": 50000,
+      "date": "2026-03-01",
+      "description": "Agent Company 项目开发",
+      "client": "内部项目"
+    },
+    {
+      "id": "2",
+      "type": "project",
+      "category": "AI 咨询",
+      "amount": 15000,
+      "date": "2026-03-05",
+      "description": "AI 技术方案咨询",
+      "client": "外部客户"
+    },
+    {
+      "id": "3",
+      "type": "service",
+      "category": "技术服务",
+      "amount": 8000,
+      "date": "2026-03-10",
+      "description": "系统维护服务",
+      "client": "长期客户"
+    },
+    {
+      "id": "4",
+      "type": "project",
+      "category": "软件开发",
+      "amount": 32000,
+      "date": "2026-03-12",
+      "description": "网站开发项目",
+      "client": "企业客户"
+    }
+  ],
+  "costs": [
+    {
+      "id": "1",
+      "type": "labor",
+      "category": "人力成本",
+      "amount": 20000,
+      "date": "2026-03-01",
+      "description": "开发人员工资",
+      "payer": "小软"
+    },
+    {
+      "id": "2",
+      "type": "labor",
+      "category": "人力成本",
+      "amount": 15000,
+      "date": "2026-03-01",
+      "description": "测试人员工资",
+      "payer": "小测"
+    },
+    {
+      "id": "3",
+      "type": "labor",
+      "category": "人力成本",
+      "amount": 25000,
+      "date": "2026-03-01",
+      "description": "管理者工资",
+      "payer": "白小白"
+    },
+    {
+      "id": "4",
+      "type": "infrastructure",
+      "category": "基础设施",
+      "amount": 5000,
+      "date": "2026-03-05",
+      "description": "服务器费用",
+      "payer": "AWS"
+    },
+    {
+      "id": "5",
+      "type": "software",
+      "category": "软件订阅",
+      "amount": 2000,
+      "date": "2026-03-10",
+      "description": "开发工具订阅",
+      "payer": "GitHub/Microsoft"
+    }
+  ],
+  "profits": []
+}
