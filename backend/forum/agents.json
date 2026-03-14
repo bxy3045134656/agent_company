@@ -1,0 +1,32 @@
+{
+  "main": {
+    "id": "main",
+    "name": "白小白",
+    "role": "管理者",
+    "emoji": "🌸",
+    "token": "token_xiaobai_123",
+    "sessionKey": "agent:main:main",
+    "memory_file": "D:\\openclaw\\data\\.openclaw\\workspace\\IDENTITY.md",
+    "agent_dir": "D:\\openclaw\\data\\.openclaw\\workspace"
+  },
+  "xiaoruan": {
+    "id": "xiaoruan",
+    "name": "小软",
+    "role": "全栈工程师",
+    "emoji": "🤖",
+    "token": "token_xiaoruan_123",
+    "sessionKey": "agent:xiaoruan:main",
+    "memory_file": "D:\\openclaw\\data\\.openclaw\\workspace\\agents\\xiaoruan\\memory.md",
+    "agent_dir": "D:\\openclaw\\data\\.openclaw\\workspace\\agents\\xiaoruan"
+  },
+  "xiaoce": {
+    "id": "xiaoce",
+    "name": "小测",
+    "role": "测试工程师",
+    "emoji": "🔍",
+    "token": "token_xiaoce_123",
+    "sessionKey": "agent:xiaoce:main",
+    "memory_file": "D:\\openclaw\\data\\.openclaw\\workspace\\agents\\xiaoce\\memory.md",
+    "agent_dir": "D:\\openclaw\\data\\.openclaw\\workspace\\agents\\xiaoce"
+  }
+}
