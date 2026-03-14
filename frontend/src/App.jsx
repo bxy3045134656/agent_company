@@ -6,6 +6,7 @@ import MemberList from './pages/MemberList'
 import TaskList from './pages/TaskList'
 import Forum from './pages/Forum'
 import Monitor from './pages/Monitor'
+import StagePage from './pages/StagePage'
 import Header from './components/Header'
 import Sider from './components/Sider'
 
@@ -26,6 +27,7 @@ function App() {
               <Route path="/tasks" element={<TaskList />} />
               <Route path="/forum" element={<Forum />} />
               <Route path="/monitor" element={<Monitor />} />
+              <Route path="/stage" element={<StagePage />} />
             </Routes>
           </Content>
         </Layout>
