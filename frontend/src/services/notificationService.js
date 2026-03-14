@@ -84,6 +84,15 @@ class NotificationService {
   handleMessage(message) {
     const { type, data } = message;
 
+    console.log('🔔 收到通知消息:', type, data);
+
+    // 特殊处理 @提及通知
+    if (type === 'forum_mention' || (data && data.type === 'forum_mention')) {
+      console.log('💬 收到 @提及通知:', data);
+      // 可以添加特殊提示音或弹窗
+      this.playMentionSound();
+    }
+
     // 触发对应的监听器
     if (this.listeners.has(type)) {
       this.listeners.get(type).forEach(callback => {
@@ -104,6 +113,32 @@ class NotificationService {
           console.error('❌ 通用监听器错误:', error);
         }
       });
+    }
+  }
+
+  /**
+   * 播放 @提及提示音
+   */
+  playMentionSound() {
+    // 简单的提示音（可以使用 Audio API）
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800; // 频率
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+      console.warn('⚠️ 播放提示音失败:', error);
     }
   }
 

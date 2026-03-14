@@ -100,6 +100,15 @@ server.listen(PORT, () => {
   console.log(`📡 健康检查：http://localhost:${PORT}/health`);
   console.log(`📚 API 文档：http://localhost:${PORT}/api/v1`);
   console.log(`🎭 舞台 WebSocket: ws://localhost:${PORT}/ws/stage`);
+  console.log(`🔔 通知 WebSocket: ws://localhost:${PORT}/ws/notifications`);
+  
+  // 启动论坛通知桥接服务
+  const ForumNotificationBridge = require('./services/forumNotificationBridge');
+  const forumBridge = new ForumNotificationBridge({
+    notificationService: notificationService,
+    pollInterval: 5000 // 5 秒轮询一次
+  });
+  forumBridge.start();
 });
 
 module.exports = { app, server };
