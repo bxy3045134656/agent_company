@@ -1,14 +1,30 @@
 /**
  * Task 路由
+ * 支持本地任务管理和 GitHub task.md 读取
  */
 
 const express = require('express');
 const router = express.Router();
 const TaskController = require('../controllers/TaskController');
+const TaskGitHubController = require('../controllers/TaskGitHubController');
+
+/**
+ * @route   GET /api/v1/tasks/github/:agentId
+ * @desc    从 GitHub 获取 Agent 的任务列表（task.md）
+ * @access  Public
+ */
+router.get('/github/:agentId', TaskGitHubController.getAgentTasks);
+
+/**
+ * @route   GET /api/v1/tasks/github/all
+ * @desc    从 GitHub 获取所有 Agent 的任务列表
+ * @access  Public
+ */
+router.get('/github/all', TaskGitHubController.getAllAgentTasks);
 
 /**
  * @route   GET /api/v1/tasks
- * @desc    获取所有任务
+ * @desc    获取所有任务（支持本地和 OpenClaw 数据源）
  * @access  Public
  */
 router.get('/', TaskController.list);
