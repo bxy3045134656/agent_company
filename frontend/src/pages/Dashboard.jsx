@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { Card, Row, Col, Statistic, Progress, List, Tag, Button, Space, Spin, Alert, Typography, Badge } from 'antd'
 import {
   DashboardOutlined,
@@ -8,8 +8,11 @@ import {
   FireOutlined,
   ReloadOutlined,
   PlusOutlined,
+  WifiOutlined,
+  DisconnectedOutlined,
 } from '@ant-design/icons'
 import axios from 'axios'
+import useDashboardWebSocket from '../hooks/useDashboardWebSocket'
 
 const { Title, Text } = Typography
 
@@ -20,9 +23,23 @@ function Dashboard() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
 
-  const loadDashboard = async () => {
-    setLoading(true)
-    setError(null)
+  // WebSocket 连接
+  const handleWebSocketUpdate = useCallback((wsData) => {
+    console.log('🔄 WebSocket 更新:', wsData.type)
+    // 收到心跳或更新时，可以选择重新加载数据
+    if (wsData.type === 'heartbeat' || wsData.type === 'agent_update' || wsData.type === 'task_update') {
+      // 静默刷新（不显示 loading）
+      loadDashboard(true)
+    }
+  }, [])
+
+  const { connected, lastMessage } = useDashboardWebSocket(handleWebSocketUpdate)
+
+  const loadDashboard = async (silent = false) => {
+    if (!silent) {
+      setLoading(true)
+      setError(null)
+    }
     try {
       const response = await axios.get(`${API_BASE}/dashboard`)
       if (response.data.success) {
@@ -30,9 +47,13 @@ function Dashboard() {
       }
     } catch (err) {
       console.error('加载仪表盘失败:', err)
-      setError('加载失败，请检查后端服务')
+      if (!silent) {
+        setError('加载失败，请检查后端服务')
+      }
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }
 
@@ -70,6 +91,10 @@ function Dashboard() {
             </Text>
           </div>
           <Space>
+            {/* WebSocket 连接状态 */}
+            <Tag icon={connected ? <WifiOutlined /> : <DisconnectedOutlined />} color={connected ? 'green' : 'red'}>
+              {connected ? '实时连接中' : '连接断开'}
+            </Tag>
             <Button size="large" type="primary" icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>
               刷新
             </Button>
