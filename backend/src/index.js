@@ -55,6 +55,7 @@ const workflowsRouter = require('./routes/workflows');
 const stageRouter = require('./routes/stage');
 const notificationsRouter = require('./routes/notifications');
 const financeRouter = require('./routes/finance');
+const forumRouter = require('./routes/forum'); // 论坛 API
 
 // 设置舞台服务
 stageRouter.setStageService(stageService);
@@ -68,6 +69,7 @@ app.use('/api/v1/workflows', workflowsRouter);
 app.use('/api/stage', stageRouter); // 舞台系统 API
 app.use('/api/v1/notifications', notificationsRouter); // 通知系统 API
 app.use('/api/v1/finance', financeRouter); // 财务系统 API
+app.use('/api', forumRouter); // 论坛 API（兼容前端 /api/posts 路径）
 
 // 404 处理
 app.use((req, res) => {

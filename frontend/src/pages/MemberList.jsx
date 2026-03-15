@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Row, Col, Table, Tag, Button, Avatar, Space, Typography, Statistic, Progress, Badge } from 'antd'
+import { Card, Row, Col, Table, Tag, Button, Avatar, Space, Typography, Statistic, Progress, Badge, Spin, Alert } from 'antd'
 import {
   TeamOutlined,
   UserOutlined,
@@ -7,13 +7,15 @@ import {
   ClockCircleOutlined,
   FileTextOutlined,
   CheckSquareOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { stageService } from '../services/stageService'
 
 const { Title, Text, Paragraph } = Typography
 
-// 团队成员配置
-const TEAM_MEMBERS = [
+// 默认成员配置（降级方案）
+const DEFAULT_MEMBERS = [
   { 
     id: 'main', 
     name: '白小白', 
@@ -51,7 +53,62 @@ const TEAM_MEMBERS = [
 
 function MemberList() {
   const navigate = useNavigate()
-  const [members, setMembers] = useState(TEAM_MEMBERS)
+  const [members, setMembers] = useState(DEFAULT_MEMBERS)
+  const [loading, setLoading] = useState(false)
+  const [dataSource, setDataSource] = useState('local') // 'openclaw' | 'local'
+  const [error, setError] = useState(null)
+
+  // 加载成员列表
+  const loadMembers = async (useOpenClaw = true) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const agents = await stageService.getAgents({
+        source: useOpenClaw ? 'openclaw' : 'local',
+      })
+      
+      // 如果从 OpenClaw 获取到数据，转换格式
+      if (agents.length > 0 && agents[0].metadata?.source === 'openclaw') {
+        const transformedAgents = agents.map(agent => ({
+          id: agent.id || agent.name,
+          name: agent.display_name || agent.name,
+          emoji: '🤖',
+          role: agent.description || 'OpenClaw Agent',
+          status: agent.status || 'offline',
+          avatar: agent.config?.model ? '#52c41a' : '#667eea',
+          tasks: 0,
+          completed: 0,
+          files: [],
+          metadata: agent.metadata,
+        }))
+        setMembers(transformedAgents)
+        setDataSource('openclaw')
+        console.log('✅ 从 OpenClaw 加载成员列表成功:', transformedAgents.length)
+      } else {
+        // 使用本地数据
+        setMembers(agents.length > 0 ? agents : DEFAULT_MEMBERS)
+        setDataSource('local')
+        console.log('⚠️ 使用本地数据')
+      }
+    } catch (err) {
+      console.error('❌ 加载成员列表失败:', err)
+      setError('加载失败，使用默认数据')
+      setMembers(DEFAULT_MEMBERS)
+      setDataSource('local')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 初始加载
+  useEffect(() => {
+    loadMembers(true) // 优先尝试 OpenClaw
+  }, [])
+
+  // 手动刷新
+  const handleRefresh = () => {
+    loadMembers(dataSource === 'openclaw')
+  }
 
   // 获取状态标签
   const getStatusBadge = (status) => {
@@ -203,18 +260,59 @@ function MemberList() {
         </Col>
       </Row>
 
-      {/* 成员列表 */}
-      <Card title="👥 团队成员">
-        <Table
-          columns={memberColumns}
-          dataSource={members}
-          rowKey="id"
-          pagination={false}
-          onRow={(record) => ({
-            onClick: () => handleViewDetail(record),
-            style: { cursor: 'pointer' },
-          })}
+      {/* 数据源提示 */}
+      {dataSource === 'openclaw' && (
+        <Alert
+          message="✅ 实时数据模式"
+          description="当前显示的是从 OpenClaw Gateway 获取的真实 Agent 数据"
+          type="success"
+          showIcon
+          style={{ marginBottom: 16 }}
+          action={
+            <Button size="small" type="primary" onClick={handleRefresh}>
+              <ReloadOutlined /> 刷新
+            </Button>
+          }
         />
+      )}
+      
+      {/* 错误提示 */}
+      {error && (
+        <Alert
+          message="⚠️ 数据加载提示"
+          description={error}
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
+      {/* 成员列表 */}
+      <Card 
+        title="👥 团队成员"
+        extra={
+          <Button 
+            type="primary" 
+            icon={<ReloadOutlined />} 
+            onClick={handleRefresh}
+            loading={loading}
+          >
+            刷新
+          </Button>
+        }
+      >
+        <Spin spinning={loading}>
+          <Table
+            columns={memberColumns}
+            dataSource={members}
+            rowKey="id"
+            pagination={false}
+            onRow={(record) => ({
+              onClick: () => handleViewDetail(record),
+              style: { cursor: 'pointer' },
+            })}
+          />
+        </Spin>
       </Card>
 
     </div>

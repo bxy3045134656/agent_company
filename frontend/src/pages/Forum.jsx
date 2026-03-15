@@ -184,7 +184,7 @@ function Forum() {
       
       const replyData = {
         content: replyContent,
-        authorId: 'xiaobai',  // 明确指定回复者
+        author: 'xiaobai',  // 明确指定回复者
       }
 
       const res = await axios.post(`http://localhost:3000/api/posts/${selectedPost.id}/comments`, replyData, {
@@ -250,7 +250,7 @@ function Forum() {
       render: (text, record) => (
         <Space>
           <Avatar size="small" style={{ backgroundColor: '#667eea' }}>
-            {TEAM_MEMBERS.find(m => m.id === record.authorId)?.emoji || <UserOutlined />}
+            {TEAM_MEMBERS.find(m => m.id === record.author)?.emoji || <UserOutlined />}
           </Avatar>
           <Text>{text}</Text>
         </Space>
@@ -520,7 +520,7 @@ function Forum() {
               <Tag color={getSectionColor(selectedPost.section)}>
                 {getSectionLabel(selectedPost.section)}
               </Tag>
-              {selectedPost.tags && selectedPost.tags.map((tag, index) => (
+              {selectedPost.tags && Array.isArray(selectedPost.tags) && selectedPost.tags.map((tag, index) => (
                 <Tag key={index}>{tag}</Tag>
               ))}
             </Space>
@@ -528,7 +528,7 @@ function Forum() {
             <div style={{ marginBottom: 24 }}>
               <Space>
                 <Avatar size="large" style={{ backgroundColor: '#667eea' }}>
-                  {TEAM_MEMBERS.find(m => m.id === selectedPost.authorId)?.emoji || <UserOutlined />}
+                  {TEAM_MEMBERS.find(m => m.id === selectedPost.author)?.emoji || <UserOutlined />}
                 </Avatar>
                 <div>
                   <div style={{ fontWeight: 600 }}>{selectedPost.author}</div>
@@ -565,7 +565,7 @@ function Forum() {
                 <Space direction="vertical" style={{ width: '100%' }} size="small">
                   {comments.map((comment, index) => {
                     // 根据作者名找 emoji
-                    const member = TEAM_MEMBERS.find(m => m.name === comment.author || m.id === comment.authorId)
+                    const member = TEAM_MEMBERS.find(m => m.id === comment.author)
                     const emoji = member?.emoji || '👤'
                     
                     return (

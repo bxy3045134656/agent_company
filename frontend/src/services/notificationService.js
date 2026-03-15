@@ -28,7 +28,14 @@ class NotificationService {
       return;
     }
 
+    // 检查浏览器是否支持 WebSocket
+    if (typeof WebSocket === 'undefined') {
+      console.warn('⚠️ 浏览器不支持 WebSocket，通知功能不可用');
+      return;
+    }
+
     try {
+      console.log('🔔 正在连接 WebSocket:', WS_URL);
       this.ws = new WebSocket(WS_URL);
 
       this.ws.onopen = () => {
@@ -52,16 +59,23 @@ class NotificationService {
       this.ws.onclose = () => {
         console.log('🔔 通知连接已关闭');
         this.connected = false;
-        this.attemptReconnect();
+        // 只在未达到最大重连次数时尝试重连
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.attemptReconnect();
+        }
       };
 
       this.ws.onerror = (error) => {
-        console.error('❌ WebSocket 错误:', error);
+        console.warn('⚠️ WebSocket 连接失败（可能是服务未启动或网络问题）:', error.message || error);
         this.connected = false;
+        // 不立即重连，等待 onclose 触发
       };
     } catch (error) {
       console.error('❌ 创建 WebSocket 连接失败:', error);
-      this.attemptReconnect();
+      // 只在未达到最大重连次数时尝试重连
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        this.attemptReconnect();
+      }
     }
   }
 
@@ -74,7 +88,8 @@ class NotificationService {
       console.log(`🔄 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
       setTimeout(() => this.connect(), this.reconnectDelay);
     } else {
-      console.error('❌ 达到最大重连次数，停止重连');
+      console.warn('⚠️ 达到最大重连次数，停止重连。通知功能将不可用，但其他功能正常。');
+      // 不再输出错误，只输出警告
     }
   }
 

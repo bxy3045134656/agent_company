@@ -1,0 +1,14 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>WebSocket Test</title></head>
+<body>
+<h1>WebSocket 测试</h1>
+<div id="status">连接中...</div>
+<script>
+const ws = new WebSocket('ws://localhost:3001/ws/notifications');
+ws.onopen = () => { document.getElementById('status').innerHTML = '✅ 连接成功！'; };
+ws.onerror = (e) => { document.getElementById('status').innerHTML = '❌ 连接失败：' + e.type; };
+ws.onmessage = (e) => { document.getElementById('status').innerHTML += '<br>收到：' + e.data; };
+</script>
+</body>
+</html>
