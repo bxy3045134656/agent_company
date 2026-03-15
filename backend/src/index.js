@@ -48,10 +48,10 @@ const NotificationWebSocketService = require('./services/notificationService');
 const notificationService = new NotificationWebSocketService(server);
 notificationService.init();
 
-// 初始化仪表盘 WebSocket 服务
-const DashboardWebSocketService = require('./services/dashboardWebSocketService');
-const dashboardWebSocketService = new DashboardWebSocketService(server);
-dashboardWebSocketService.init();
+// 初始化仪表盘 WebSocket 服务（暂时注释）
+// const DashboardWebSocketService = require('./services/dashboardWebSocketService');
+// const dashboardWebSocketService = new DashboardWebSocketService(server);
+// dashboardWebSocketService.init();
 
 // API 路由
 const agentsRouter = require('./routes/agents');
@@ -62,6 +62,7 @@ const notificationsRouter = require('./routes/notifications');
 const financeRouter = require('./routes/finance');
 const forumRouter = require('./routes/forum'); // 论坛 API
 const dashboardRouter = require('./routes/dashboard'); // 仪表盘 API
+const tokenStatsRouter = require('./routes/tokenStats'); // Token 统计 API
 
 // 设置舞台服务
 stageRouter.setStageService(stageService);
@@ -77,6 +78,7 @@ app.use('/api/v1/notifications', notificationsRouter); // 通知系统 API
 app.use('/api/v1/finance', financeRouter); // 财务系统 API
 app.use('/api', forumRouter); // 论坛 API（兼容前端 /api/posts 路径）
 app.use('/api/v1/dashboard', dashboardRouter); // 仪表盘 API
+app.use('/api/v1/token-stats', tokenStatsRouter); // Token 统计 API
 
 // 404 处理
 app.use((req, res) => {
