@@ -5,15 +5,26 @@ const useTaskStore = create((set, get) => ({
   tasks: [],
   loading: false,
   error: null,
+  dataSource: 'openclaw', // 'openclaw' | 'local'
 
   // 加载所有任务
   fetchTasks: async (params = {}) => {
+    // 默认使用 OpenClaw 数据源
+    const fetchParams = { source: 'openclaw', ...params }
+    
     set({ loading: true, error: null })
     try {
-      const tasks = await taskService.getAll(params)
-      set({ tasks, loading: false })
+      const tasks = await taskService.getAll(fetchParams)
+      set({ tasks, loading: false, dataSource: fetchParams.source })
     } catch (error) {
-      set({ error: error.message, loading: false })
+      console.warn('OpenClaw 获取失败，尝试本地数据:', error.message)
+      // 降级：尝试从本地获取
+      try {
+        const localTasks = await taskService.getAll({ ...params, source: 'local' })
+        set({ tasks: localTasks, loading: false, dataSource: 'local' })
+      } catch (localError) {
+        set({ error: localError.message, loading: false })
+      }
     }
   },
 
