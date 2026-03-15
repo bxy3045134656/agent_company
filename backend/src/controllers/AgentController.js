@@ -4,15 +4,51 @@
  */
 
 const Agent = require('../models/Agent');
+const openclawService = require('../services/openclawService');
 
 class AgentController {
   /**
    * 获取所有 Agents
    * GET /api/v1/agents
+   * 支持参数：source=openclaw（从 OpenClaw 获取）| source=local（从本地获取）
    */
   static async list(req, res, next) {
     try {
-      const { status, limit, offset } = req.query;
+      const { status, limit, offset, source } = req.query;
+      
+      // 如果指定了 source=openclaw，优先从 OpenClaw 获取
+      if (source === 'openclaw') {
+        try {
+          // 尝试从 OpenClaw 获取会话列表
+          const sessionsResult = await openclawService.getSessions();
+          
+          if (sessionsResult.success && sessionsResult.data.length > 0) {
+            // 转换 OpenClaw 会话数据为 Agent 格式
+            const agents = openclawService.transformSessionsToAgents(sessionsResult.data);
+            
+            // 应用状态过滤
+            const filteredAgents = status 
+              ? agents.filter(a => a.status === status)
+              : agents;
+            
+            // 应用分页
+            const limitNum = parseInt(limit) || 50;
+            const offsetNum = parseInt(offset) || 0;
+            const paginatedAgents = filteredAgents.slice(offsetNum, offsetNum + limitNum);
+            
+            return res.json({
+              success: true,
+              data: paginatedAgents,
+              source: 'openclaw',
+              message: '从 OpenClaw 获取成功',
+            });
+          }
+        } catch (error) {
+          console.warn('OpenClaw 获取失败，降级到本地数据:', error.message);
+        }
+      }
+      
+      // 默认：从本地数据库获取（降级方案）
       const agents = await Agent.findAll({
         status,
         limit: parseInt(limit) || 50,
@@ -22,7 +58,8 @@ class AgentController {
       res.json({
         success: true,
         data: agents,
-        message: '获取成功',
+        source: 'local',
+        message: '从本地数据库获取成功',
       });
     } catch (error) {
       next(error);

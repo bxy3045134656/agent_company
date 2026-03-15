@@ -7,7 +7,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3001/api/v1';
 const WS_URL = 'ws://localhost:3001/ws/stage';
 
 /**
@@ -128,15 +128,33 @@ class StageService {
 
   /**
    * 获取所有 Agent 状态（HTTP 备用方案）
+   * 支持参数：source='openclaw' | 'local'
+   * @param {Object} options - 选项
+   * @param {string} options.source - 数据源：'openclaw' | 'local'
    * @returns {Promise<Array>} Agent 列表
    */
-  async getAgents() {
+  async getAgents(options = {}) {
+    const { source = 'openclaw' } = options;
+    
     try {
-      const response = await axios.get(`${API_BASE_URL}/agents`);
+      // 优先从 OpenClaw 获取数据
+      const response = await axios.get(`${API_BASE_URL}/agents`, {
+        params: { source },
+      });
+      
+      // 如果从 OpenClaw 获取成功，直接返回
+      if (response.data.source === 'openclaw') {
+        console.log('✅ 从 OpenClaw 获取 Agent 列表成功');
+        return response.data.data || [];
+      }
+      
+      // 否则使用本地数据
+      console.log('⚠️ 使用本地数据库数据');
       return response.data.data || [];
     } catch (error) {
-      console.error('❌ 获取 Agent 列表失败:', error);
-      // 返回示例数据用于开发测试
+      console.error('❌ 获取 Agent 列表失败:', error.message);
+      console.warn('降级：使用本地 Mock 数据');
+      // 返回示例数据用于开发测试（降级方案）
       return this.getMockAgents();
     }
   }
