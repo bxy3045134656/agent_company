@@ -48,6 +48,11 @@ const NotificationWebSocketService = require('./services/notificationService');
 const notificationService = new NotificationWebSocketService(server);
 notificationService.init();
 
+// 初始化仪表盘 WebSocket 服务
+const DashboardWebSocketService = require('./services/dashboardWebSocketService');
+const dashboardWebSocketService = new DashboardWebSocketService(server);
+dashboardWebSocketService.init();
+
 // API 路由
 const agentsRouter = require('./routes/agents');
 const tasksRouter = require('./routes/tasks');
