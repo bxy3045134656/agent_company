@@ -48,4 +48,18 @@ router.put('/:id', AgentController.update);
  */
 router.delete('/:id', AgentController.delete);
 
+/**
+ * @route   GET /api/v1/agents/openclaw/active
+ * @desc    获取 OpenClaw 中所有活跃 Agent
+ * @access  Public
+ */
+router.get('/openclaw/active', AgentController.getOpenClawAgents);
+
+/**
+ * @route   POST /api/v1/agents/openclaw/refresh
+ * @desc    刷新 OpenClaw Agent 缓存
+ * @access  Public
+ */
+router.post('/openclaw/refresh', AgentController.refreshOpenClawAgents);
+
 module.exports = router;

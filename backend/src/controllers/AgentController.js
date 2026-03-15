@@ -4,6 +4,7 @@
  */
 
 const Agent = require('../models/Agent');
+const OpenClawService = require('../services/openclawService');
 
 class AgentController {
   /**
@@ -192,6 +193,61 @@ class AgentController {
       });
     } catch (error) {
       next(error);
+    }
+  }
+
+  /**
+   * 获取 OpenClaw 活跃 Agent
+   * GET /api/v1/agents/openclaw/active
+   */
+  static async getOpenClawAgents(req, res, next) {
+    try {
+      const openclawService = new OpenClawService();
+      const agents = await openclawService.getActiveAgents();
+
+      res.json({
+        success: true,
+        data: agents,
+        message: '获取成功',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('获取 OpenClaw Agent 失败:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'OPENCLAW_ERROR',
+          message: '获取 OpenClaw Agent 失败',
+        },
+      });
+    }
+  }
+
+  /**
+   * 刷新 OpenClaw Agent 缓存
+   * POST /api/v1/agents/openclaw/refresh
+   */
+  static async refreshOpenClawAgents(req, res, next) {
+    try {
+      const openclawService = new OpenClawService();
+      openclawService.refreshCache();
+      const agents = await openclawService.getActiveAgents();
+
+      res.json({
+        success: true,
+        data: agents,
+        message: '刷新成功',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('刷新 OpenClaw Agent 失败:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'OPENCLAW_ERROR',
+          message: '刷新 OpenClaw Agent 失败',
+        },
+      });
     }
   }
 }

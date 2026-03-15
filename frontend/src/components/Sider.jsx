@@ -10,6 +10,7 @@ import {
   AppstoreOutlined,
   ProjectOutlined,
   BellOutlined,
+  RobotOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import notificationService from '../services/notificationService'
@@ -44,6 +45,11 @@ function Sider() {
       key: '/stage',
       icon: <AppstoreOutlined />,
       label: '🎭 舞台系统',
+    },
+    {
+      key: '/openclaw-agents',
+      icon: <RobotOutlined />,
+      label: '🤖 OpenClaw 连接',
     },
     {
       key: '/members',

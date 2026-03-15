@@ -10,6 +10,7 @@ import Monitor from './pages/Monitor'
 import StagePage from './pages/StagePage'
 import WorkflowList from './pages/WorkflowList'
 import NotificationsPage from './pages/NotificationsPage'
+import OpenClawAgentPage from './pages/OpenClawAgentPage'
 import Header from './components/Header'
 import Sider from './components/Sider'
 
@@ -34,6 +35,7 @@ function App() {
               <Route path="/monitor" element={<Monitor />} />
               <Route path="/stage" element={<StagePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/openclaw-agents" element={<OpenClawAgentPage />} />
             </Routes>
           </Content>
         </Layout>
