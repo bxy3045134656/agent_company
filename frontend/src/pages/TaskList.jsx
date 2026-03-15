@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { Table, Tag, Space, Button, Modal, Form, Input, Select, message, Popconfirm } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined } from '@ant-design/icons'
+import { Table, Tag, Space, Button, Modal, Form, Input, Select, message, Popconfirm, Alert, Row, Col, Card } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, CheckOutlined, ReloadOutlined, CloudOutlined, DatabaseOutlined } from '@ant-design/icons'
 import useTaskStore from '../store/taskStore'
 import useAgentStore from '../store/agentStore'
 
 const { TextArea } = Input
 
 function TaskList() {
-  const { tasks, loading, fetchTasks, addTask, updateTask, deleteTask, updateTaskStatus } = useTaskStore()
+  const { tasks, loading, fetchTasks, addTask, updateTask, deleteTask, updateTaskStatus, dataSource } = useTaskStore()
   const { agents, fetchAgents } = useAgentStore()
   const [modalVisible, setModalVisible] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
   const [form] = Form.useForm()
+  const [filterStatus, setFilterStatus] = useState(null)
+  const [filterAgent, setFilterAgent] = useState(null)
 
   useEffect(() => {
     fetchTasks()
@@ -157,12 +159,60 @@ function TaskList() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h1>任务管理</h1>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          新建任务
-        </Button>
-      </div>
+      {/* 数据源提示 */}
+      {dataSource === 'openclaw' && (
+        <Alert
+          message="✅ 实时数据模式"
+          description="当前显示的是从 OpenClaw 获取的真实任务数据"
+          type="success"
+          showIcon
+          style={{ marginBottom: 16 }}
+          icon={<CloudOutlined />}
+        />
+      )}
+
+      {/* 筛选和控制面板 */}
+      <Card style={{ marginBottom: 16 }}>
+        <Row gutter={16} align="middle">
+          <Col flex="auto">
+            <Space wrap>
+              <Select
+                placeholder="筛选状态"
+                allowClear
+                style={{ width: 120 }}
+                onChange={setFilterStatus}
+                options={[
+                  { value: 'pending', label: '待处理' },
+                  { value: 'assigned', label: '已分配' },
+                  { value: 'in_progress', label: '进行中' },
+                  { value: 'completed', label: '已完成' },
+                ]}
+              />
+              <Select
+                placeholder="筛选 Agent"
+                allowClear
+                style={{ width: 150 }}
+                onChange={setFilterAgent}
+                options={agents.map(a => ({ value: a.id, label: a.display_name }))}
+              />
+            </Space>
+          </Col>
+          <Col>
+            <Space>
+              <Button 
+                icon={<ReloadOutlined />} 
+                onClick={() => fetchTasks({ status: filterStatus, agent_id: filterAgent })}
+                loading={loading}
+              >
+                刷新
+              </Button>
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                新建任务
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
 
       <Table
         columns={columns}
