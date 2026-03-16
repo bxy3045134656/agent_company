@@ -36,40 +36,6 @@ const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { Option } = Select
 
-// 团队成员配置（从 MemberList 复用）
-const TEAM_MEMBERS = {
-  main: { 
-    id: 'main', 
-    name: '白小白', 
-    emoji: '🌸', 
-    role: '管理者',
-    status: 'online',
-    avatar: '#667eea',
-    skills: ['团队管理', '任务分配', '代码审核', '架构设计'],
-    description: '团队领导者，负责整体架构和技术决策'
-  },
-  xiaoruan: { 
-    id: 'xiaoruan', 
-    name: '小软', 
-    emoji: '🤖', 
-    role: '全栈工程师',
-    status: 'busy',
-    avatar: '#13c2c2',
-    skills: ['React', 'Node.js', 'Python', 'Three.js', '数据库设计'],
-    description: '全栈开发工程师，负责核心功能开发'
-  },
-  xiaoce: { 
-    id: 'xiaoce', 
-    name: '小测', 
-    emoji: '🔍', 
-    role: '测试工程师',
-    status: 'online',
-    avatar: '#722ed1',
-    skills: ['自动化测试', '性能测试', '安全测试', '质量保障'],
-    description: '测试工程师，负责质量保证和测试'
-  },
-}
-
 // 工作模式配置
 const WORK_MODES = {
   focus: { label: '专注模式', icon: <RocketOutlined />, color: '#52c41a', desc: '最大化工作效率，减少干扰' },
@@ -102,34 +68,21 @@ function MemberProfile() {
   const loadMemberData = async () => {
     try {
       setLoading(true)
-      const memberId = id || 'xiaoruan' // 默认显示小软
-      
-      // 获取成员详情
-      const memberData = TEAM_MEMBERS[memberId] || TEAM_MEMBERS.xiaoruan
-      setMember(memberData)
-      setIsOnline(memberData.status === 'online' || memberData.status === 'busy')
-      
-      // 模拟统计数据（实际应该从 API 获取）
-      setStats({
-        total_tasks: 15,
-        completed_tasks: 12,
-        pending_tasks: 2,
-        failed_tasks: 1,
-        efficiency: 85,
-        work_hours_today: 6.5,
-        work_hours_week: 35,
-      })
-      
-      // 模拟效率数据
-      setEfficiencyData([
-        { day: '周一', efficiency: 75, tasks: 5 },
-        { day: '周二', efficiency: 82, tasks: 7 },
-        { day: '周三', efficiency: 88, tasks: 8 },
-        { day: '周四', efficiency: 85, tasks: 6 },
-        { day: '周五', efficiency: 90, tasks: 9 },
-        { day: '周六', efficiency: 70, tasks: 3 },
-        { day: '周日', efficiency: 65, tasks: 2 },
-      ])
+      try {
+        // 从 API 获取成员数据
+        const response = await axios.get(`${API_BASE}/agents`)
+        if (response.data.success) {
+          const agents = response.data.data || []
+          const memberData = agents.find(a => a.id === id) || agents[0]
+          setMember(memberData)
+          setIsOnline(memberData?.status === 'online' || memberData?.status === 'busy')
+        }
+      } catch (err) {
+        console.error('加载成员数据失败:', err)
+        message.error('加载失败')
+      } finally {
+        setLoading(false)
+      }
       
       // 模拟工作时间数据
       setWorkTimeData([
