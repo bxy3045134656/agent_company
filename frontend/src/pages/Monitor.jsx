@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Progress, Button, Table, Avatar, Space, Typography, Tag, Spin, Alert } from 'antd'
-import {
-  DashboardOutlined,
-  CheckCircleOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons'
+import { Card, Row, Col, Statistic, Button, Table, Avatar, Space, Typography, Tag, Spin, Alert } from 'antd'
+import { DashboardOutlined, CheckCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useSearchParams } from 'react-router-dom'
 import axios from 'axios'
 
@@ -14,8 +10,6 @@ const API_BASE = 'http://localhost:3001/api/v1'
 
 function Monitor() {
   const [searchParams] = useSearchParams()
-  const memberParam = searchParams.get('member')
-  
   const [loading, setLoading] = useState(false)
   const [members, setMembers] = useState([])
   const [error, setError] = useState(null)
@@ -33,6 +27,12 @@ function Monitor() {
         setMembers(response.data.data || [])
       }
     } catch (err) {
+      console.error('获取成员数据失败:', err)
+      setError('加载失败，请检查后端服务')
+    } finally {
+      setLoading(false)
+    }
+  }
       console.error('获取成员数据失败:', err)
       setError('加载失败，请检查后端服务')
     } finally {
