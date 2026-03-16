@@ -36,40 +36,6 @@ const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
 const { Option } = Select
 
-// 团队成员配置（从 MemberList 复用）
-const TEAM_MEMBERS = {
-  main: { 
-    id: 'main', 
-    name: '白小白', 
-    emoji: '🌸', 
-    role: '管理者',
-    status: 'online',
-    avatar: '#667eea',
-    skills: ['团队管理', '任务分配', '代码审核', '架构设计'],
-    description: '团队领导者，负责整体架构和技术决策'
-  },
-  xiaoruan: { 
-    id: 'xiaoruan', 
-    name: '小软', 
-    emoji: '🤖', 
-    role: '全栈工程师',
-    status: 'busy',
-    avatar: '#13c2c2',
-    skills: ['React', 'Node.js', 'Python', 'Three.js', '数据库设计'],
-    description: '全栈开发工程师，负责核心功能开发'
-  },
-  xiaoce: { 
-    id: 'xiaoce', 
-    name: '小测', 
-    emoji: '🔍', 
-    role: '测试工程师',
-    status: 'online',
-    avatar: '#722ed1',
-    skills: ['自动化测试', '性能测试', '安全测试', '质量保障'],
-    description: '测试工程师，负责质量保证和测试'
-  },
-}
-
 // 工作模式配置
 const WORK_MODES = {
   focus: { label: '专注模式', icon: <RocketOutlined />, color: '#52c41a', desc: '最大化工作效率，减少干扰' },

@@ -1,53 +1,38 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Progress, Button, Table, Avatar, Space, Typography, Tag } from 'antd'
-import {
-  DashboardOutlined,
-  CheckCircleOutlined,
-  WarningOutlined,
-  DollarOutlined,
-  ReloadOutlined,
-  UserOutlined,
-  RobotOutlined,
-  ThunderboltOutlined,
-} from '@ant-design/icons'
+import { Card, Row, Col, Statistic, Button, Table, Avatar, Space, Typography, Tag, Spin, Alert } from 'antd'
+import { DashboardOutlined, CheckCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useSearchParams } from 'react-router-dom'
+import axios from 'axios'
 
 const { Title, Text } = Typography
 
+const API_BASE = 'http://localhost:3001/api/v1'
+
 function Monitor() {
   const [searchParams] = useSearchParams()
-  const memberParam = searchParams.get('member')
-  
   const [loading, setLoading] = useState(false)
-  const [stats, setStats] = useState({
-    inputTokens: 0,
-    outputTokens: 0,
-    successRequests: 0,
-    remainingRequests: 0,
-    totalQuota: 0,
-    estimatedCost: 0,
-    quotaType: 'monthly',
-    resetTime: null,
-  })
-
-  // 团队成员数据
-  const members = [
-    { id: 'main', name: '白小白', emoji: '🌸', role: '管理者', status: 'online', tasks: 5, completion: 100 },
-    { id: 'xiaoruan', name: '小软', emoji: '🤖', role: '全栈工程师', status: 'online', tasks: 8, completion: 92 },
-    { id: 'xiaoce', name: '小测', emoji: '🔍', role: '测试工程师', status: 'online', tasks: 6, completion: 88 },
-  ]
+  const [members, setMembers] = useState([])
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetchStats()
+    fetchMembers()
   }, [])
 
-  const fetchStats = async () => {
+  const fetchMembers = async () => {
     setLoading(true)
+    setError(null)
     try {
-      const response = await fetch('http://localhost:5000/api/stats')
-      const result = await response.json()
-      
-      if (result.success) {
+      const response = await axios.get(`${API_BASE}/agents`)
+      if (response.data.success) {
+        setMembers(response.data.data || [])
+      }
+    } catch (err) {
+      console.error('获取成员数据失败:', err)
+      setError('加载失败，请检查后端服务')
+    } finally {
+      setLoading(false)
+    }
+  }
         setStats(result.data)
       }
     } catch (error) {
