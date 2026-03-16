@@ -40,11 +40,6 @@ function Monitor() {
     }
   }
 
-  const totalTokens = stats.inputTokens + stats.outputTokens
-  const usedPercent = stats.totalQuota > 0 
-    ? Math.round(((stats.totalQuota - stats.remainingRequests) / stats.totalQuota) * 100)
-    : 0
-
   // 成员监控表格
   const memberColumns = [
     {
@@ -160,44 +155,6 @@ function Monitor() {
 }
 
 export default Monitor
-          <Card>
-            <Statistic
-              title="输出 Token"
-              value={stats.outputTokens}
-              precision={0}
-              valueStyle={{ color: '#13c2c2' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={8}>
-          <Card>
-            <Statistic
-              title="总计"
-              value={totalTokens}
-              precision={0}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 请求统计 */}
-      <Card title="🔢 请求统计" style={{ marginBottom: 24 }}>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} lg={8}>
-            <Statistic
-              title="成功请求"
-              value={stats.successRequests}
-              precision={0}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Col>
-          <Col xs={24} sm={12} lg={8}>
-            <Statistic
-              title="剩余请求"
-              value={stats.remainingRequests}
-              precision={0}
               prefix={<WarningOutlined />}
               valueStyle={{ color: '#faad14' }}
             />
