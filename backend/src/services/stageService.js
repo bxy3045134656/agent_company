@@ -2,10 +2,12 @@
  * stageService.js
  * 舞台系统 WebSocket 服务 - 实时同步 Agent 工作状态
  * @author 小软 🤖
- * @version 1.0.0
+ * @version 2.0.0
+ * v3.0: 移除假 Agent，只显示真实 OpenClaw Agent
  */
 
 const WebSocket = require('ws');
+const axios = require('axios');
 
 class StageWebSocketService {
   constructor(server) {
@@ -13,44 +15,34 @@ class StageWebSocketService {
     this.clients = new Set();
     this.agents = new Map();
     this.server = server;
+    this.openclawBaseUrl = process.env.OPENCLAW_BASE_URL || 'http://localhost:18792';
     
-    // 初始化示例 Agent 数据
-    this.initMockAgents();
+    // v3.0: 不再初始化假 Agent，从 OpenClaw 获取真实 Agent
   }
 
   /**
-   * 初始化示例 Agent 数据
+   * 从 OpenClaw 获取真实 Agent 列表
    */
-  initMockAgents() {
-    this.agents.set('xiaoruan', {
-      id: 'xiaoruan',
-      name: '小软 🤖',
-      status: 'working',
-      statusText: '开发舞台系统',
-      task: 'Issue #2 - 舞台系统',
-      progress: 75,
-      color: '#4CAF50'
-    });
-
-    this.agents.set('xiaobai', {
-      id: 'xiaobai',
-      name: '白小白 👨‍💼',
-      status: 'idle',
-      statusText: '审核代码',
-      task: 'Code Review',
-      progress: 0,
-      color: '#2196F3'
-    });
-
-    this.agents.set('xiaoce', {
-      id: 'xiaoce',
-      name: '小测 🧪',
-      status: 'working',
-      statusText: '执行测试',
-      task: '自动化测试',
-      progress: 45,
-      color: '#FF9800'
-    });
+  async loadRealAgents() {
+    try {
+      const response = await axios.get(`${this.openclawBaseUrl}/sessions/list`);
+      const sessions = response.data.sessions || [];
+      
+      this.agents.clear();
+      sessions.forEach(session => {
+        this.agents.set(session.sessionKey || session.id, {
+          id: session.sessionKey || session.id,
+          name: session.label || session.agentId || 'Unknown Agent',
+          status: session.active ? 'working' : 'idle',
+          statusText: session.model || 'Default Model',
+          task: 'Real-time Task',
+          progress: 0,
+          color: '#1890ff'
+        });
+      });
+    } catch (error) {
+      console.error('从 OpenClaw 获取 Agent 失败:', error.message);
+    }
   }
 
   /**
