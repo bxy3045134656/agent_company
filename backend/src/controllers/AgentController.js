@@ -17,7 +17,7 @@ class AgentController {
       const { status, limit, offset, source } = req.query;
       
       // 如果指定了 source=openclaw，优先从 OpenClaw 获取
-      if (source === 'openclaw') {
+      if (source !== 'local') {
         try {
           // 尝试从 OpenClaw 获取会话列表
           const sessionsResult = await openclawService.getSessions();
