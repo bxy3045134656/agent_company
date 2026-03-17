@@ -64,6 +64,7 @@ const forumRouter = require('./routes/forum'); // 论坛 API
 const dashboardRouter = require('./routes/dashboard'); // 仪表盘 API
 const tokenStatsRouter = require('./routes/tokenStats'); // Token 统计 API
 const agentManagementRouter = require('./routes/agentManagementRoutes'); // Agent 管理 API
+const authRouter = require('./routes/auth'); // 认证 API
 
 // 设置舞台服务
 stageRouter.setStageService(stageService);
@@ -71,6 +72,7 @@ stageRouter.setStageService(stageService);
 // 设置通知服务
 notificationsRouter.setNotificationService(notificationService);
 
+app.use('/api/v1/auth', authRouter); // 认证 API
 app.use('/api/v1/agents', agentsRouter);
 app.use('/api/v1/agents/management', agentManagementRouter); // Agent 管理 API
 app.use('/api/v1/tasks', tasksRouter);
