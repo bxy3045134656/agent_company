@@ -72,9 +72,10 @@ class FinanceService {
    * 获取利润统计
    */
   async getProfitStats() {
+    const data = await this.getRealFinanceData();
     return {
       success: true,
-      data: this.mockData.profit,
+      data: data.profit,
     };
   }
 
@@ -82,13 +83,10 @@ class FinanceService {
    * 获取完整财务数据
    */
   async getFinanceOverview() {
+    const data = await this.getRealFinanceData();
     return {
       success: true,
-      data: {
-        income: this.mockData.income,
-        cost: this.mockData.cost,
-        profit: this.mockData.profit,
-      },
+      data,
     };
   }
 
@@ -96,9 +94,10 @@ class FinanceService {
    * 获取利润趋势
    */
   async getProfitTrend(months = 12) {
+    const data = await this.getRealFinanceData();
     return {
       success: true,
-      data: this.generateProfitTrend(months),
+      data: data.profit.trend,
     };
   }
 }
