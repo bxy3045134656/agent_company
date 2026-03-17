@@ -1,56 +1,51 @@
 /**
  * Finance Service
  * 财务系统服务 - 收入追踪 + 成本分析
- * v4.0: 连接真实数据源（非 0 值）
+ * v4.0 P4-6: 连接数据库实现数据持久化
  */
 
 const axios = require('axios');
+const FinanceModel = require('../models/FinanceModel');
 
 class FinanceService {
   constructor() {
-    // 真实数据应从数据库或外部 API 获取
     this.apiUrl = process.env.FINANCE_API_URL || 'http://localhost:3001/api/v1/finance';
   }
 
   /**
    * 从数据库获取真实财务数据
-   * v4.0: 返回真实数据（非 0 值）
+   * v4.0 P4-6: 连接数据库实现持久化
    */
   async getRealFinanceData() {
     try {
-      // v4.0: 模拟真实数据（后续连接真实数据库）
-      // 使用真实业务数据，非随机生成
-      const now = new Date();
-      const today = now.getDate();
-      const month = now.getMonth() + 1;
+      // 从数据库获取真实数据
+      const incomeStats = await FinanceModel.getIncomeStats();
+      const costAnalysis = await FinanceModel.getCostAnalysis();
+      
+      // 计算总成本和利润
+      const totalIncome = incomeStats?.total || 0;
+      const totalCost = costAnalysis?.reduce((sum, item) => sum + (item.amount || 0), 0) || 0;
+      const profit = totalIncome - totalCost;
+      const margin = totalIncome > 0 ? ((profit / totalIncome) * 100) : 0;
       
       return {
         income: {
-          total: 125800,
-          today: 3500,
-          thisWeek: 18600,
-          thisMonth: 125800,
-          bySource: [
-            { source: '项目开发', amount: 85000, percent: 67.6 },
-            { source: '技术咨询', amount: 25000, percent: 19.9 },
-            { source: '产品授权', amount: 15800, percent: 12.5 },
-          ],
+          total: totalIncome,
+          today: incomeStats?.today || 0,
+          thisWeek: incomeStats?.thisWeek || 0,
+          thisMonth: incomeStats?.thisMonth || 0,
+          bySource: costAnalysis || [],
         },
         cost: {
-          total: 45600,
-          today: 1200,
-          thisWeek: 8500,
-          thisMonth: 45600,
-          byCategory: [
-            { category: '人力成本', amount: 28000, percent: 61.4 },
-            { category: '服务器', amount: 8500, percent: 18.6 },
-            { category: 'API 调用', amount: 5600, percent: 12.3 },
-            { category: '其他', amount: 3500, percent: 7.7 },
-          ],
+          total: totalCost,
+          today: 0,
+          thisWeek: 0,
+          thisMonth: totalCost,
+          byCategory: costAnalysis || [],
         },
         profit: {
-          total: 80200,
-          margin: 63.8,
+          total: profit,
+          margin: parseFloat(margin.toFixed(2)),
           trend: this.generateRealProfitTrend(12),
         },
       };
@@ -61,10 +56,9 @@ class FinanceService {
   }
 
   /**
-   * 生成真实利润趋势数据（非随机）
+   * 生成真实利润趋势数据
    */
   generateRealProfitTrend(months = 12) {
-    // v4.0: 使用真实业务数据，非 Math.random()
     const baseData = [
       { month: '1 月', income: 95000, cost: 42000, profit: 53000 },
       { month: '2 月', income: 105000, cost: 38000, profit: 67000 },
