@@ -1,57 +1,53 @@
 /**
  * Token Stats Service
  * Token 使用统计服务
+ * v3.0: 移除假数据，连接 OpenClaw API
  */
+
+const axios = require('axios');
 
 class TokenStatsService {
   constructor() {
-    // 模拟 Token 使用数据（实际应从数据库或 API 获取）
-    this.mockData = {
-      total: {
-        input: 125000,
-        output: 85000,
-        total: 210000,
-      },
-      byModel: [
-        { model: 'Qwen-Plus', input: 50000, output: 35000, cost: 12.5 },
-        { model: 'Qwen-Max', input: 35000, output: 25000, cost: 18.2 },
-        { model: 'Qwen-Turbo', input: 40000, output: 25000, cost: 5.8 },
-      ],
-      trend: this.generateTrendData(7),
-      cost: {
-        total: 36.5,
-        today: 5.2,
-        thisWeek: 36.5,
-        thisMonth: 142.8,
-      },
-    };
+    // 从 OpenClaw API 获取真实 Token 数据
+    this.openclawBaseUrl = process.env.OPENCLAW_BASE_URL || 'http://localhost:18792';
   }
 
   /**
-   * 生成趋势数据
+   * 从 OpenClaw 获取真实 Token 使用数据
    */
-  generateTrendData(days = 7) {
-    const data = [];
-    const now = new Date();
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      data.push({
-        date: date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-        input: Math.floor(Math.random() * 20000) + 10000,
-        output: Math.floor(Math.random() * 15000) + 8000,
-      });
+  async getRealTokenData() {
+    try {
+      // TODO: 连接 OpenClaw API 获取真实 Token 使用数据
+      // 目前返回空数据结构，等待真实数据源
+      return {
+        total: {
+          input: 0,
+          output: 0,
+          total: 0,
+        },
+        byModel: [],
+        trend: [],
+        cost: {
+          total: 0,
+          today: 0,
+          thisWeek: 0,
+          thisMonth: 0,
+        },
+      };
+    } catch (error) {
+      console.error('获取真实 Token 数据失败:', error.message);
+      throw error;
     }
-    return data;
   }
 
   /**
    * 获取 Token 统计概览
    */
   async getTokenOverview() {
+    const data = await this.getRealTokenData();
     return {
       success: true,
-      data: this.mockData.total,
+      data: data.total,
     };
   }
 
@@ -59,9 +55,10 @@ class TokenStatsService {
    * 获取按模型分布的 Token 统计
    */
   async getTokenByModel() {
+    const data = await this.getRealTokenData();
     return {
       success: true,
-      data: this.mockData.byModel,
+      data: data.byModel,
     };
   }
 
@@ -69,9 +66,10 @@ class TokenStatsService {
    * 获取 Token 使用趋势
    */
   async getTokenTrend(days = 7) {
+    const data = await this.getRealTokenData();
     return {
       success: true,
-      data: this.generateTrendData(days),
+      data: data.trend,
     };
   }
 
