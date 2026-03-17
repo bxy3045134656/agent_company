@@ -77,9 +77,10 @@ class TokenStatsService {
    * 获取成本统计
    */
   async getCostStats() {
+    const data = await this.getRealTokenData();
     return {
       success: true,
-      data: this.mockData.cost,
+      data: data.cost,
     };
   }
 
@@ -87,14 +88,10 @@ class TokenStatsService {
    * 获取完整的 Token 统计数据
    */
   async getTokenStats() {
+    const data = await this.getRealTokenData();
     return {
       success: true,
-      data: {
-        overview: this.mockData.total,
-        byModel: this.mockData.byModel,
-        trend: this.generateTrendData(7),
-        cost: this.mockData.cost,
-      },
+      data,
     };
   }
 }
