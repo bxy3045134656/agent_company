@@ -10,7 +10,7 @@ const http = require('http');
 
 class ForumNotificationBridge {
   constructor(options = {}) {
-    this.forumApiUrl = options.forumApiUrl || 'http://localhost:3000/api';
+    this.forumApiUrl = options.forumApiUrl || 'http://localhost:3001/api';
     this.mainApiUrl = options.mainApiUrl || 'http://localhost:3001/api/v1';
     this.pollInterval = options.pollInterval || 5000; // 5 秒
     this.notificationService = options.notificationService;
