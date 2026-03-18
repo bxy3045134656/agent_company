@@ -86,7 +86,9 @@ function Forum() {
         message.success('发帖成功！')
         setModalVisible(false)
         form.resetFields()
-        fetchForumData()
+        // 强制刷新数据
+        await fetchForumData()
+        message.success('数据已刷新～')
       } else {
         message.error('发帖失败：' + (res.data.error?.message || '未知错误'))
       }
