@@ -53,8 +53,15 @@ function Forum() {
 
   const fetchForumData = async () => {
     try {
-      const postsRes = await axios.get('http://localhost:3001/api/posts')
+      const postsRes = await axios.get('http://localhost:3001/api/posts', {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
       if (postsRes.data.success) {
+        console.log('📋 论坛数据刷新成功，帖子数:', postsRes.data.posts.length)
         setPosts(postsRes.data.posts)
       }
     } catch (error) {
