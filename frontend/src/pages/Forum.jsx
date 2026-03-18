@@ -417,6 +417,12 @@ function Forum() {
             onChange: setSelectedRowKeys,
             hideSelectAll: false,
           }}
+          sortDirections={['descend', 'ascend']}
+          defaultSortOrder="descend"
+          sorters={{
+            compare: (a, b) => new Date(b.created_at) - new Date(a.created_at),
+            multiple: 1
+          }}
         />
       </Card>
 
