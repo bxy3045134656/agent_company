@@ -6,8 +6,8 @@
  * @version 1.0.0
  */
 
-const API_BASE_URL = 'http://localhost:3001/api/v1';
-const WS_URL = 'ws://localhost:3001/ws/notifications';
+const API_BASE_URL = 'http://127.0.0.1:3001/api/v1';
+const WS_URL = 'ws://127.0.0.1:3001/ws/notifications';
 
 class NotificationService {
   constructor() {

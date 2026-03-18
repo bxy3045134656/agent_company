@@ -53,7 +53,7 @@ function Forum() {
 
   const fetchForumData = async () => {
     try {
-      const postsRes = await axios.get('http://localhost:3000/api/posts')
+      const postsRes = await axios.get('http://localhost:3001/api/posts')
       if (postsRes.data.success) {
         setPosts(postsRes.data.posts)
       }
@@ -75,7 +75,7 @@ function Forum() {
         tags: values.tags || [],
       }
 
-      const res = await axios.post('http://localhost:3000/api/posts', postData, {
+      const res = await axios.post('http://localhost:3001/api/posts', postData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer token_xiaobai_123',
@@ -99,7 +99,7 @@ function Forum() {
   // 删除单个帖子
   const handleDeletePost = async (postId) => {
     try {
-      const res = await axios.delete(`http://localhost:3000/api/posts/${postId}`, {
+      const res = await axios.delete(`http://localhost:3001/api/posts/${postId}`, {
         headers: {
           'Authorization': 'Bearer token_xiaobai_123',
         },
@@ -126,7 +126,7 @@ function Forum() {
 
     try {
       const deletePromises = selectedRowKeys.map(id => 
-        axios.delete(`http://localhost:3000/api/posts/${id}`, {
+        axios.delete(`http://localhost:3001/api/posts/${id}`, {
           headers: { 'Authorization': 'Bearer token_xiaobai_123' },
         })
       )
@@ -146,7 +146,7 @@ function Forum() {
   // 加载评论
   const fetchComments = async (postId) => {
     try {
-      const res = await axios.get(`http://localhost:3000/api/posts/${postId}/comments`)
+      const res = await axios.get(`http://localhost:3001/api/posts/${postId}/comments`)
       if (res.data.success) {
         setComments(res.data.comments)
       }
@@ -187,7 +187,7 @@ function Forum() {
         author: 'xiaobai',  // 明确指定回复者
       }
 
-      const res = await axios.post(`http://localhost:3000/api/posts/${selectedPost.id}/comments`, replyData, {
+      const res = await axios.post(`http://localhost:3001/api/posts/${selectedPost.id}/comments`, replyData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer token_xiaobai_123',
@@ -201,7 +201,7 @@ function Forum() {
         // 刷新评论列表
         fetchComments(selectedPost.id)
         // 刷新帖子详情（显示最新内容）
-        const postRes = await axios.get(`http://localhost:3000/api/posts/${selectedPost.id}`)
+        const postRes = await axios.get(`http://localhost:3001/api/posts/${selectedPost.id}`)
         if (postRes.data.success) {
           setSelectedPost(postRes.data.post)
         }
