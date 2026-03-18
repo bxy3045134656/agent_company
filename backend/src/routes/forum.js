@@ -9,60 +9,21 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const fs = require('fs');
+const Database = require('better-sqlite3');
 
-// 数据文件路径
-const DATA_DIR = path.join(__dirname, '../data/forum');
-const POSTS_FILE = path.join(DATA_DIR, 'posts.json');
-const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
-
-// 确保数据目录存在
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-// 初始化帖子数据
-if (!fs.existsSync(POSTS_FILE)) {
-  fs.writeFileSync(POSTS_FILE, JSON.stringify({ posts: [], nextId: 1 }, null, 2));
-}
-
-// 初始化评论数据
-if (!fs.existsSync(COMMENTS_FILE)) {
-  fs.writeFileSync(COMMENTS_FILE, JSON.stringify({ comments: [], nextId: 1 }, null, 2));
-}
-
-// 读取帖子数据
-function getPosts() {
-  const data = JSON.parse(fs.readFileSync(POSTS_FILE, 'utf-8'));
-  return data.posts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-}
-
-// 保存帖子数据
-function savePosts(posts) {
-  const data = { posts, nextId: posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1 };
-  fs.writeFileSync(POSTS_FILE, JSON.stringify(data, null, 2));
-}
-
-// 读取评论数据
-function getComments() {
-  const data = JSON.parse(fs.readFileSync(COMMENTS_FILE, 'utf-8'));
-  return data.comments;
-}
-
-// 保存评论数据
-function saveComments(comments) {
-  const data = { comments, nextId: comments.length > 0 ? Math.max(...comments.map(c => c.id)) + 1 : 1 };
-  fs.writeFileSync(COMMENTS_FILE, JSON.stringify(data, null, 2));
-}
+// 数据库路径
+const DB_PATH = path.join(__dirname, '../../forum/storage/forum.db');
+const db = new Database(DB_PATH);
 
 // 获取所有帖子
 router.get('/posts', (req, res) => {
   try {
-    const posts = getPosts().map(post => ({
+    const posts = db.prepare('SELECT * FROM posts ORDER BY created_at DESC').all();
+    const formattedPosts = posts.map(post => ({
       ...post,
       tags: typeof post.tags === 'string' ? JSON.parse(post.tags || '[]') : (post.tags || [])
     }));
-    res.json({ success: true, posts });
+    res.json({ success: true, posts: formattedPosts });
   } catch (error) {
     console.error('获取帖子失败:', error);
     res.status(500).json({ success: false, error: { code: 'READ_ERROR', message: error.message } });
@@ -72,13 +33,13 @@ router.get('/posts', (req, res) => {
 // 获取单个帖子
 router.get('/posts/:id', (req, res) => {
   try {
-    const posts = getPosts();
-    const post = posts.find(p => p.id === parseInt(req.params.id));
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(parseInt(req.params.id));
     if (!post) {
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: '帖子不存在' } });
     }
+    // 增加浏览量
+    db.prepare('UPDATE posts SET views = views + 1 WHERE id = ?').run(parseInt(req.params.id));
     post.views = (post.views || 0) + 1;
-    savePosts(posts);
     // 解析 tags
     post.tags = typeof post.tags === 'string' ? JSON.parse(post.tags || '[]') : (post.tags || []);
     res.json({ success: true, post });
@@ -97,22 +58,14 @@ router.post('/posts', (req, res) => {
       return res.status(400).json({ success: false, error: { code: 'INVALID_INPUT', message: '标题和内容不能为空' } });
     }
 
-    const posts = getPosts();
-    const newPost = {
-      id: posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1,
-      title,
-      content,
-      section: section || 'general',
-      tags: tags || [],
-      author,
-      likes: 0,
-      views: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    posts.unshift(newPost);
-    savePosts(posts);
+    const stmt = db.prepare(`
+      INSERT INTO posts (title, content, section, tags, author, likes, views, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, 0, 0, datetime('now'), datetime('now'))
+    `);
+    const result = stmt.run(title, content, section || 'general', JSON.stringify(tags || []), author);
+    
+    const newPost = db.prepare('SELECT * FROM posts WHERE id = ?').get(result.lastInsertRowid);
+    newPost.tags = typeof newPost.tags === 'string' ? JSON.parse(newPost.tags || '[]') : (newPost.tags || []);
 
     console.log(`📝 新帖子创建：#${newPost.id} ${title} by ${author}`);
     res.status(201).json({ success: true, post: newPost });
@@ -125,25 +78,30 @@ router.post('/posts', (req, res) => {
 // 更新帖子
 router.put('/posts/:id', (req, res) => {
   try {
-    const posts = getPosts();
-    const index = posts.findIndex(p => p.id === parseInt(req.params.id));
+    const { title, content, section, tags } = req.body;
+    const id = parseInt(req.params.id);
     
-    if (index === -1) {
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
+    if (!post) {
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: '帖子不存在' } });
     }
 
-    const { title, content, section, tags } = req.body;
-    posts[index] = {
-      ...posts[index],
-      title: title || posts[index].title,
-      content: content || posts[index].content,
-      section: section || posts[index].section,
-      tags: tags || posts[index].tags,
-      updated_at: new Date().toISOString()
-    };
+    db.prepare(`
+      UPDATE posts 
+      SET title = ?, content = ?, section = ?, tags = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `).run(
+      title || post.title,
+      content || post.content,
+      section || post.section,
+      tags ? JSON.stringify(tags) : post.tags,
+      id
+    );
 
-    savePosts(posts);
-    res.json({ success: true, post: posts[index] });
+    const updatedPost = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
+    updatedPost.tags = typeof updatedPost.tags === 'string' ? JSON.parse(updatedPost.tags || '[]') : (updatedPost.tags || []);
+    
+    res.json({ success: true, post: updatedPost });
   } catch (error) {
     console.error('更新帖子失败:', error);
     res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: error.message } });
@@ -153,14 +111,16 @@ router.put('/posts/:id', (req, res) => {
 // 删除帖子
 router.delete('/posts/:id', (req, res) => {
   try {
-    const posts = getPosts();
-    const filteredPosts = posts.filter(p => p.id !== parseInt(req.params.id));
+    const id = parseInt(req.params.id);
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
     
-    if (filteredPosts.length === posts.length) {
+    if (!post) {
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: '帖子不存在' } });
     }
 
-    savePosts(filteredPosts);
+    db.prepare('DELETE FROM posts WHERE id = ?').run(id);
+    db.prepare('DELETE FROM comments WHERE post_id = ?').run(id);
+    
     res.json({ success: true, message: '帖子已删除' });
   } catch (error) {
     console.error('删除帖子失败:', error);
@@ -171,7 +131,7 @@ router.delete('/posts/:id', (req, res) => {
 // 获取帖子的评论
 router.get('/posts/:id/comments', (req, res) => {
   try {
-    const comments = getComments().filter(c => c.post_id === parseInt(req.params.id));
+    const comments = db.prepare('SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC').all(parseInt(req.params.id));
     res.json({ success: true, comments });
   } catch (error) {
     console.error('获取评论失败:', error);
@@ -183,75 +143,26 @@ router.get('/posts/:id/comments', (req, res) => {
 router.post('/posts/:id/comments', (req, res) => {
   try {
     const { content, author = 'main', reply_to } = req.body;
+    const postId = parseInt(req.params.id);
     
     if (!content) {
       return res.status(400).json({ success: false, error: { code: 'INVALID_INPUT', message: '评论内容不能为空' } });
     }
 
-    const posts = getPosts();
-    const post = posts.find(p => p.id === parseInt(req.params.id));
-    
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(postId);
     if (!post) {
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: '帖子不存在' } });
     }
 
-    const comments = getComments();
-    const newComment = {
-      id: comments.length > 0 ? Math.max(...comments.map(c => c.id)) + 1 : 1,
-      post_id: post.id,
-      content,
-      author,
-      reply_to: reply_to || null,
-      likes: 0,
-      created_at: new Date().toISOString()
-    };
+    const stmt = db.prepare(`
+      INSERT INTO comments (post_id, content, author, reply_to, likes, created_at)
+      VALUES (?, ?, ?, ?, 0, datetime('now'))
+    `);
+    const result = stmt.run(postId, content, author, reply_to || null);
+    
+    const newComment = db.prepare('SELECT * FROM comments WHERE id = ?').get(result.lastInsertRowid);
 
-    comments.push(newComment);
-    saveComments(comments);
-
-    console.log(`💬 新评论：#${newComment.id} on Post #${post.id} by ${author}`);
-    
-    // 检测 @提及 并创建通知
-    const mentionRegex = /@(main|xiaoruan|xiaoce|小软 | 小测 | 白小白)/g;
-    let match;
-    const mentionedUsers = new Set();
-    
-    while ((match = mentionRegex.exec(content)) !== null) {
-      const mentionedUsername = match[1];
-      if (mentionedUsername && !mentionedUsers.has(mentionedUsername)) {
-        mentionedUsers.add(mentionedUsername);
-        console.log(`🔔 检测到 @提及：${mentionedUsername}`);
-        
-        // 创建简单通知（不检查外键，只插入 username）
-        try {
-          const Database = require('better-sqlite3');
-          const dbPath = path.join(__dirname, '../../forum/storage/forum.db');
-          const db = new Database(dbPath);
-          
-          // 先查询用户 ID
-          const user = db.prepare('SELECT id FROM users WHERE username = ?').get(mentionedUsername);
-          
-          if (!user) {
-            console.log(`⚠️ 用户 ${mentionedUsername} 不存在，跳过通知创建`);
-            db.close();
-            continue;
-          }
-          
-          const notificationStmt = db.prepare(`
-            INSERT INTO notifications (user_id, username, type, content, post_id, comment_id, author, post_title, is_read, created_at)
-            VALUES (?, ?, 'forum_mention', ?, ?, ?, ?, ?, 0, datetime('now'))
-          `);
-          
-          const notificationContent = `${author} 在帖子"${post.title}"中@了你`;
-          notificationStmt.run(user.id, mentionedUsername, notificationContent, post.id, newComment.id, author, post.title);
-          db.close();
-          console.log(`✅ 已创建 @提及 通知给 ${mentionedUsername} (ID: ${user.id})`);
-        } catch (error) {
-          console.error(`❌ 创建 @提及 通知失败：`, error.message);
-        }
-      }
-    }
-    
+    console.log(`💬 新评论：#${newComment.id} on Post #${postId} by ${author}`);
     res.status(201).json({ success: true, comment: newComment });
   } catch (error) {
     console.error('创建评论失败:', error);
@@ -262,16 +173,17 @@ router.post('/posts/:id/comments', (req, res) => {
 // 点赞帖子
 router.post('/posts/:id/like', (req, res) => {
   try {
-    const posts = getPosts();
-    const post = posts.find(p => p.id === parseInt(req.params.id));
+    const id = parseInt(req.params.id);
+    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
     
     if (!post) {
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: '帖子不存在' } });
     }
 
-    post.likes = (post.likes || 0) + 1;
-    savePosts(posts);
-    res.json({ success: true, likes: post.likes });
+    db.prepare('UPDATE posts SET likes = likes + 1 WHERE id = ?').run(id);
+    const updatedPost = db.prepare('SELECT * FROM posts WHERE id = ?').get(id);
+    
+    res.json({ success: true, likes: updatedPost.likes });
   } catch (error) {
     console.error('点赞失败:', error);
     res.status(500).json({ success: false, error: { code: 'LIKE_ERROR', message: error.message } });
