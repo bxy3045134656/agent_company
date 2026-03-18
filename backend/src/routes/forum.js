@@ -143,7 +143,7 @@ router.get('/posts/:id/comments', (req, res) => {
 // 创建评论
 router.post('/posts/:id/comments', (req, res) => {
   try {
-    const { content, author = 'main', reply_to } = req.body;
+    const { content, author = 'main', parent_id } = req.body;
     const postId = parseInt(req.params.id);
     
     if (!content) {
@@ -156,10 +156,10 @@ router.post('/posts/:id/comments', (req, res) => {
     }
 
     const stmt = db.prepare(`
-      INSERT INTO comments (post_id, content, author, reply_to, likes, created_at)
+      INSERT INTO comments (post_id, content, author, parent_id, likes, created_at)
       VALUES (?, ?, ?, ?, 0, datetime('now'))
     `);
-    const result = stmt.run(postId, content, author, reply_to || null);
+    const result = stmt.run(postId, content, author, parent_id || null);
     
     const newComment = db.prepare('SELECT * FROM comments WHERE id = ?').get(result.lastInsertRowid);
 
@@ -171,29 +171,30 @@ router.post('/posts/:id/comments', (req, res) => {
     const mentionedUsers = new Set();
     
     while ((match = mentionRegex.exec(content)) !== null) {
-      const mentionedUser = match[1];
-      if (mentionedUser && !mentionedUsers.has(mentionedUser)) {
-        mentionedUsers.add(mentionedUser);
-        console.log(`🔔 检测到 @提及：${mentionedUser}`);
+      const mentionedUsername = match[1];
+      if (mentionedUsername && !mentionedUsers.has(mentionedUsername)) {
+        mentionedUsers.add(mentionedUsername);
+        console.log(`🔔 检测到 @提及：${mentionedUsername}`);
+        
+        // 查询用户 ID
+        const user = db.prepare('SELECT id, username FROM users WHERE username = ? OR id = ?').get(mentionedUsername, mentionedUsername);
+        
+        if (!user) {
+          console.log(`⚠️ 用户 ${mentionedUsername} 不存在，跳过通知创建`);
+          continue;
+        }
         
         // 创建通知
         try {
           const notificationStmt = db.prepare(`
-            INSERT INTO notifications (user_id, type, title, message, data, is_read, created_at)
-            VALUES (?, 'forum_mention', '📬 有人@了你', ?, ?, 0, datetime('now'))
+            INSERT INTO notifications (user_id, username, type, content, post_id, comment_id, author, post_title, is_read, created_at)
+            VALUES (?, ?, 'forum_mention', ?, ?, ?, ?, ?, 0, datetime('now'))
           `);
           
-          const notificationData = JSON.stringify({
-            post_id: postId,
-            post_title: post.title,
-            comment_id: newComment.id,
-            author: author,
-            content: content
-          });
+          const notificationContent = `${author} 在帖子"${post.title}"中@了你：${content.substring(0, 100)}`;
           
-          const title = `${author} 在帖子"${post.title}"中@了你`;
-          notificationStmt.run(mentionedUser, title, notificationData);
-          console.log(`✅ 已创建 @提及 通知给 ${mentionedUser}`);
+          notificationStmt.run(user.id, user.username, notificationContent, postId, newComment.id, author, post.title);
+          console.log(`✅ 已创建 @提及 通知给 ${user.username} (ID: ${user.id})`);
         } catch (error) {
           console.error(`❌ 创建 @提及 通知失败：`, error.message);
         }
