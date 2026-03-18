@@ -125,8 +125,8 @@ class ForumNotificationBridge {
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'localhost',
-        port: 3000,
-        path: '/api/notifications',
+        port: 3001,
+        path: '/api/v1/notifications',
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -206,8 +206,8 @@ class ForumNotificationBridge {
       const data = JSON.stringify({});
       const options = {
         hostname: 'localhost',
-        port: 3000,
-        path: `/api/notifications/${notificationId}/read`,
+        port: 3001,
+        path: `/api/v1/notifications/${notificationId}/read`,
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

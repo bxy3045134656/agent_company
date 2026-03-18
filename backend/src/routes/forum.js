@@ -164,6 +164,42 @@ router.post('/posts/:id/comments', (req, res) => {
     const newComment = db.prepare('SELECT * FROM comments WHERE id = ?').get(result.lastInsertRowid);
 
     console.log(`💬 新评论：#${newComment.id} on Post #${postId} by ${author}`);
+    
+    // 检测 @提及 并创建通知
+    const mentionRegex = /@(\w+)/g;
+    let match;
+    const mentionedUsers = new Set();
+    
+    while ((match = mentionRegex.exec(content)) !== null) {
+      const mentionedUser = match[1];
+      if (mentionedUser && !mentionedUsers.has(mentionedUser)) {
+        mentionedUsers.add(mentionedUser);
+        console.log(`🔔 检测到 @提及：${mentionedUser}`);
+        
+        // 创建通知
+        try {
+          const notificationStmt = db.prepare(`
+            INSERT INTO notifications (user_id, type, title, message, data, is_read, created_at)
+            VALUES (?, 'forum_mention', '📬 有人@了你', ?, ?, 0, datetime('now'))
+          `);
+          
+          const notificationData = JSON.stringify({
+            post_id: postId,
+            post_title: post.title,
+            comment_id: newComment.id,
+            author: author,
+            content: content
+          });
+          
+          const title = `${author} 在帖子"${post.title}"中@了你`;
+          notificationStmt.run(mentionedUser, title, notificationData);
+          console.log(`✅ 已创建 @提及 通知给 ${mentionedUser}`);
+        } catch (error) {
+          console.error(`❌ 创建 @提及 通知失败：`, error.message);
+        }
+      }
+    }
+
     res.status(201).json({ success: true, comment: newComment });
   } catch (error) {
     console.error('创建评论失败:', error);
