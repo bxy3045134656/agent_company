@@ -13,12 +13,13 @@ const Database = require('better-sqlite3');
 
 // 数据库路径
 const DB_PATH = path.join(__dirname, '../../forum/storage/forum.db');
+console.log('📂 论坛数据库路径:', DB_PATH);
 const db = new Database(DB_PATH);
 
 // 获取所有帖子
 router.get('/posts', (req, res) => {
   try {
-    const posts = db.prepare('SELECT * FROM posts ORDER BY created_at DESC').all();
+    const posts = db.prepare('SELECT * FROM posts ORDER BY id DESC').all();
     const formattedPosts = posts.map(post => ({
       ...post,
       tags: typeof post.tags === 'string' ? JSON.parse(post.tags || '[]') : (post.tags || [])
