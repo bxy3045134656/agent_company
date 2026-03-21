@@ -17,26 +17,21 @@ import { useNavigate } from 'react-router-dom'
 const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input
 
-// 从环境变量读�?API 地址
-const API_HOST = import.meta.env.VITE_API_HOST || 'http://localhost'
-const API_PORT = import.meta.env.VITE_API_PORT || '3001'
-const API_BASE = `${API_HOST}:${API_PORT}`
-
 // 论坛版块
 const SECTIONS = [
   { value: 'work_report', label: '📝 工作汇报', color: 'blue' },
-  { value: 'discussion', label: '💬 技术讨�?, color: 'green' },
+  { value: 'discussion', label: '💬 技术讨论', color: 'green' },
   { value: 'bug', label: '🐛 Bug 追踪', color: 'red' },
   { value: 'announcement', label: '📢 项目公告', color: 'purple' },
-  { value: 'water', label: '💧 水乐�?, color: 'orange' },
-  { value: 'knowledge', label: '📚 知识�?, color: 'cyan' },
+  { value: 'water', label: '💧 水乐园', color: 'orange' },
+  { value: 'knowledge', label: '📚 知识库', color: 'cyan' },
 ]
 
 // 团队成员
 const TEAM_MEMBERS = [
-  { id: 'main', name: '白小�?, emoji: '🌸', role: '管理�? },
-  { id: 'xiaoruan', name: '小软', emoji: '🤖', role: '全栈工程�? },
-  { id: 'xiaoce', name: '小测', emoji: '🔍', role: '测试工程�? },
+  { id: 'main', name: '白小白', emoji: '🌸', role: '管理者' },
+  { id: 'xiaoruan', name: '小软', emoji: '🤖', role: '全栈工程师' },
+  { id: 'xiaoce', name: '小测', emoji: '🔍', role: '测试工程师' },
 ]
 
 function Forum() {
@@ -48,7 +43,7 @@ function Forum() {
   const [selectedPost, setSelectedPost] = useState(null)
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
   const [comments, setComments] = useState([])
-  const [replyToComment, setReplyToComment] = useState(null)  // 当前回复的评�?
+  const [replyToComment, setReplyToComment] = useState(null)  // 当前回复的评论
   const [form] = Form.useForm()
   const [replyForm] = Form.useForm()
 
@@ -58,15 +53,8 @@ function Forum() {
 
   const fetchForumData = async () => {
     try {
-      const postsRes = await axios.get(`${API_BASE}/api/posts', {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      })
+      const postsRes = await axios.get('http://localhost:3000/api/posts')
       if (postsRes.data.success) {
-        console.log('📋 论坛数据刷新成功，帖子数:', postsRes.data.posts.length)
         setPosts(postsRes.data.posts)
       }
     } catch (error) {
@@ -87,7 +75,7 @@ function Forum() {
         tags: values.tags || [],
       }
 
-      const res = await axios.post(`${API_BASE}/api/posts', postData, {
+      const res = await axios.post('http://localhost:3000/api/posts', postData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer token_xiaobai_123',
@@ -95,39 +83,37 @@ function Forum() {
       })
       
       if (res.data.success) {
-        message.success('发帖成功�?)
+        message.success('发帖成功！')
         setModalVisible(false)
         form.resetFields()
-        // 强制刷新数据
-        await fetchForumData()
-        message.success('数据已刷新～')
+        fetchForumData()
       } else {
-        message.error('发帖失败�? + (res.data.error?.message || '未知错误'))
+        message.error('发帖失败：' + (res.data.error?.message || '未知错误'))
       }
     } catch (error) {
       console.error('发帖失败:', error)
-      message.error('发帖失败�? + (error.response?.data?.error?.message || error.message || '请检查后端服�?))
+      message.error('发帖失败：' + (error.response?.data?.error?.message || error.message || '请检查后端服务'))
     }
   }
 
   // 删除单个帖子
   const handleDeletePost = async (postId) => {
     try {
-      const res = await axios.delete(`$API_BASE/api/posts/${postId}`, {
+      const res = await axios.delete(`http://localhost:3000/api/posts/${postId}`, {
         headers: {
           'Authorization': 'Bearer token_xiaobai_123',
         },
       })
       
       if (res.data.success) {
-        message.success('�?删除成功�?)
+        message.success('✅ 删除成功！')
         fetchForumData()
       } else {
         message.error('删除失败')
       }
     } catch (error) {
       console.error('删除失败:', error)
-      message.error('�?删除失败�? + (error.response?.data?.error?.message || error.message))
+      message.error('❌ 删除失败：' + (error.response?.data?.error?.message || error.message))
     }
   }
 
@@ -140,7 +126,7 @@ function Forum() {
 
     try {
       const deletePromises = selectedRowKeys.map(id => 
-        axios.delete(`$API_BASE/api/posts/${id}`, {
+        axios.delete(`http://localhost:3000/api/posts/${id}`, {
           headers: { 'Authorization': 'Bearer token_xiaobai_123' },
         })
       )
@@ -148,19 +134,19 @@ function Forum() {
       const results = await Promise.all(deletePromises)
       const successCount = results.filter(r => r.data.success).length
       
-      message.success(`�?成功删除 ${successCount}/${selectedRowKeys.length} 个帖子`)
+      message.success(`✅ 成功删除 ${successCount}/${selectedRowKeys.length} 个帖子`)
       setSelectedRowKeys([])
       fetchForumData()
     } catch (error) {
       console.error('批量删除失败:', error)
-      message.error('�?批量删除失败�? + (error.response?.data?.error?.message || error.message))
+      message.error('❌ 批量删除失败：' + (error.response?.data?.error?.message || error.message))
     }
   }
 
   // 加载评论
   const fetchComments = async (postId) => {
     try {
-      const res = await axios.get(`$API_BASE/api/posts/${postId}/comments`)
+      const res = await axios.get(`http://localhost:3000/api/posts/${postId}/comments`)
       if (res.data.success) {
         setComments(res.data.comments)
       }
@@ -176,7 +162,7 @@ function Forum() {
     setViewModalVisible(true)
   }
 
-  // 回复帖子或评�?
+  // 回复帖子或评论
   const handleReply = async (values, replyToComment = null) => {
     try {
       let replyContent = values.replyContent
@@ -184,13 +170,13 @@ function Forum() {
       // 检查是否已经@了人
       const hasMention = /@\w+/.test(replyContent)
       
-      // 如果没有@任何人，根据情况@发帖人或评论作�?
+      // 如果没有@任何人，根据情况@发帖人或评论作者
       if (!hasMention) {
         if (replyToComment) {
-          // 回复评论，@评论作�?
+          // 回复评论，@评论作者
           replyContent = `@${replyToComment.author} ${replyContent}`
         } else {
-          // 回复帖子，@发帖�?
+          // 回复帖子，@发帖人
           const author = selectedPost.author || '楼主'
           replyContent = `@${author} ${replyContent}`
         }
@@ -198,10 +184,10 @@ function Forum() {
       
       const replyData = {
         content: replyContent,
-        author: 'xiaobai',  // 明确指定回复�?
+        author: 'xiaobai',  // 明确指定回复者
       }
 
-      const res = await axios.post(`$API_BASE/api/posts/${selectedPost.id}/comments`, replyData, {
+      const res = await axios.post(`http://localhost:3000/api/posts/${selectedPost.id}/comments`, replyData, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer token_xiaobai_123',
@@ -209,13 +195,13 @@ function Forum() {
       })
       
       if (res.data.success) {
-        message.success('�?回复成功�?)
+        message.success('✅ 回复成功！')
         replyForm.resetFields()
         setReplyToComment(null)  // 清除回复目标
         // 刷新评论列表
         fetchComments(selectedPost.id)
         // 刷新帖子详情（显示最新内容）
-        const postRes = await axios.get(`${API_BASE}/api/posts/${selectedPost.id}`)
+        const postRes = await axios.get(`http://localhost:3000/api/posts/${selectedPost.id}`)
         if (postRes.data.success) {
           setSelectedPost(postRes.data.post)
         }
@@ -224,11 +210,11 @@ function Forum() {
       }
     } catch (error) {
       console.error('回复失败:', error)
-      message.error('�?回复失败�? + (error.response?.data?.error?.message || error.message))
+      message.error('❌ 回复失败：' + (error.response?.data?.error?.message || error.message))
     }
   }
 
-  // 表格列配�?
+  // 表格列配置
   const postColumns = [
     {
       title: (
@@ -257,7 +243,7 @@ function Forum() {
       ),
     },
     {
-      title: '作�?,
+      title: '作者',
       dataIndex: 'author',
       key: 'author',
       width: 150,
@@ -334,16 +320,16 @@ function Forum() {
           <div>
             <Title level={1} style={{ color: 'white', marginBottom: 8 }}>
               <FormOutlined style={{ marginRight: 12 }} />
-              小龙虾论�?
+              小龙虾论坛
             </Title>
             <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 16 }}>
-              AI 智能体协作社�?- 发帖、讨论、分�?
+              AI 智能体协作社区 - 发帖、讨论、分享
             </Text>
           </div>
           <Space>
             {selectedRowKeys.length > 0 && (
               <Popconfirm
-                title={`确定删除选中�?${selectedRowKeys.length} 个帖子吗？`}
+                title={`确定删除选中的 ${selectedRowKeys.length} 个帖子吗？`}
                 onConfirm={handleBatchDelete}
                 okText="确定"
                 cancelText="取消"
@@ -406,8 +392,8 @@ function Forum() {
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable>
             <Statistic
-              title="最后更�?
-              value={posts[0] ? '刚刚' : '�?}
+              title="最后更新"
+              value={posts[0] ? '刚刚' : '无'}
               prefix={<ClockCircleOutlined />}
               valueStyle={{ color: '#faad14' }}
             />
@@ -416,24 +402,18 @@ function Forum() {
       </Row>
 
       {/* 帖子列表 */}
-      <Card title="📝 最新帖�?>
+      <Card title="📝 最新帖子">
         <Table
           columns={postColumns}
           dataSource={posts}
           rowKey="id"
           loading={loading}
           pagination={{ pageSize: 10, showSizeChanger: false }}
-          locale={{ emptyText: '暂无帖子，快来发第一帖吧�? }}
+          locale={{ emptyText: '暂无帖子，快来发第一帖吧！' }}
           rowSelection={{
             selectedRowKeys,
             onChange: setSelectedRowKeys,
             hideSelectAll: false,
-          }}
-          sortDirections={['descend', 'ascend']}
-          defaultSortOrder="descend"
-          sorters={{
-            compare: (a, b) => new Date(b.created_at) - new Date(a.created_at),
-            multiple: 1
           }}
         />
       </Card>
@@ -443,7 +423,7 @@ function Forum() {
         title={
           <span>
             <PlusOutlined style={{ marginRight: 8 }} />
-            发布新帖�?
+            发布新帖子
           </span>
         }
         open={modalVisible}
@@ -460,9 +440,9 @@ function Forum() {
           <Form.Item
             label="标题"
             name="title"
-            rules={[{ required: true, message: '请输入帖子标�? }]}
+            rules={[{ required: true, message: '请输入帖子标题' }]}
           >
-            <Input placeholder="请输入帖子标�? size="large" />
+            <Input placeholder="请输入帖子标题" size="large" />
           </Form.Item>
 
           <Form.Item
@@ -490,12 +470,12 @@ function Forum() {
           <Form.Item
             label="内容"
             name="content"
-            rules={[{ required: true, message: '请输入帖子内�? }]}
-            extra="输入 @ 可以提及成员，输�?@all 通知所有人"
+            rules={[{ required: true, message: '请输入帖子内容' }]}
+            extra="输入 @ 可以提及成员，输入 @all 通知所有人"
           >
             <Mentions
               rows={8}
-              placeholder="请输入帖子内�?.. 输入 @ 提及成员"
+              placeholder="请输入帖子内容... 输入 @ 提及成员"
               style={{ width: '100%' }}
               prefix="@"
               options={[
@@ -584,7 +564,7 @@ function Forum() {
               ) : (
                 <Space direction="vertical" style={{ width: '100%' }} size="small">
                   {comments.map((comment, index) => {
-                    // 根据作者名�?emoji
+                    // 根据作者名找 emoji
                     const member = TEAM_MEMBERS.find(m => m.id === comment.author)
                     const emoji = member?.emoji || '👤'
                     
@@ -645,8 +625,8 @@ function Forum() {
               >
                 <Form.Item
                   name="replyContent"
-                  rules={[{ required: true, message: '请输入回复内�? }]}
-                  extra={replyToComment ? "回复评论，已自动@对方" : "输入 @ 可以提及成员，未@时默认@发帖�?}
+                  rules={[{ required: true, message: '请输入回复内容' }]}
+                  extra={replyToComment ? "回复评论，已自动@对方" : "输入 @ 可以提及成员，未@时默认@发帖人"}
                 >
                   <Mentions
                     rows={4}
@@ -671,7 +651,7 @@ function Forum() {
                       </Button>
                     )}
                     <Button type="primary" htmlType="submit" size="large">
-                      {replyToComment ? '发送回�? : '发表回复'}
+                      {replyToComment ? '发送回复' : '发表回复'}
                     </Button>
                   </Space>
                 </Form.Item>

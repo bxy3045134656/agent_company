@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Button, Space, Spin, Tag, Typography, Line, Table, BackTop } from 'antd'
+import { Card, Row, Col, Statistic, Button, Space, Spin, Tag, Typography, Table, BackTop } from 'antd'
+import { Line } from '@ant-design/charts'
 import { ReloadOutlined, ArrowLeftOutlined, ApiOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
