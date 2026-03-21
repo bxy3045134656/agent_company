@@ -13,7 +13,10 @@ function useDashboardWebSocket(onUpdate) {
   useEffect(() => {
     const connect = () => {
       try {
-        const ws = new WebSocket('ws://localhost:3001/ws/dashboard')
+        // 从环境变量读取 WebSocket 地址
+        const WS_HOST = import.meta.env.VITE_WS_HOST || 'ws://localhost'
+        const WS_PORT = import.meta.env.VITE_API_PORT || '3001'
+        const ws = new WebSocket(`${WS_HOST}:${WS_PORT}/ws/dashboard`)
         wsRef.current = ws
 
         ws.onopen = () => {

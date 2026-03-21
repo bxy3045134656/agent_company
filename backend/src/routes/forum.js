@@ -165,7 +165,8 @@ router.post('/posts/:id/comments', (req, res) => {
     console.log(`💬 新评论：#${newComment.id} on Post #${postId} by ${author}`);
     
     // 检测 @提及 并创建通知
-    const mentionRegex = /@(main|xiaoruan|xiaoce)/g;
+    // 支持匹配任何用户名（包括中文显示名）
+    const mentionRegex = /@([\w\u4e00-\u9fa5]+)/g;
     let match;
     const mentionedUsers = new Set();
     
@@ -175,8 +176,8 @@ router.post('/posts/:id/comments', (req, res) => {
         mentionedUsers.add(mentionedUsername);
         console.log(`🔔 检测到 @提及：${mentionedUsername}`);
         
-        // 查询用户 ID
-        const user = db.prepare('SELECT id FROM users WHERE username = ?').get(mentionedUsername);
+        // 查询用户 ID（支持 username 和 display_name 两种匹配方式）
+        const user = db.prepare('SELECT id, username FROM users WHERE username = ? OR display_name = ?').get(mentionedUsername, mentionedUsername);
         
         if (!user) {
           console.log(`⚠️ 用户 ${mentionedUsername} 不存在，跳过通知创建`);
@@ -191,7 +192,8 @@ router.post('/posts/:id/comments', (req, res) => {
           `);
           
           const notificationContent = `${author} 在帖子"${post.title}"中@了你`;
-          notificationStmt.run(user.id, mentionedUsername, notificationContent, postId, newComment.id, author, post.title);
+          // 使用数据库中的 username（英文用户名），而不是 mentionedUsername（可能是中文显示名）
+          notificationStmt.run(user.id, user.username, notificationContent, postId, newComment.id, author, post.title);
           console.log(`✅ 已创建 @提及 通知给 ${mentionedUsername} (ID: ${user.id})`);
         } catch (error) {
           console.error(`❌ 创建 @提及 通知失败：`, error.message);

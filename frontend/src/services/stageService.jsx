@@ -7,8 +7,12 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api/v1';
-const WS_URL = 'ws://localhost:3001/ws/stage';
+// 从环境变量读取 API 地址，支持配置
+const API_HOST = import.meta.env.VITE_API_HOST || 'http://localhost'
+const API_PORT = import.meta.env.VITE_API_PORT || '3001'
+const WS_HOST = import.meta.env.VITE_WS_HOST || 'ws://localhost'
+const API_BASE_URL = `${API_HOST}:${API_PORT}/api/v1`;
+const WS_URL = `${WS_HOST}:${API_PORT}/ws/stage`;
 
 /**
  * StageService - 舞台系统服务类

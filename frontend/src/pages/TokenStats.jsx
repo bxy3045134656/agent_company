@@ -14,7 +14,10 @@ import axios from 'axios'
 const { Title, Text } = Typography
 const { Option } = Select
 
-const API_BASE = 'http://localhost:3001/api/v1'
+// 从环境变量读取 API 地址
+const API_HOST = import.meta.env.VITE_API_HOST || 'http://localhost'
+const API_PORT = import.meta.env.VITE_API_PORT || '3001'
+const API_BASE = `${API_HOST}:${API_PORT}/api/v1`
 
 function TokenStats() {
   const [loading, setLoading] = useState(false)
