@@ -30,6 +30,7 @@ const TokenStats = lazy(() => import('../pages/TokenStats'));
 const GitHubTasks = lazy(() => import('../pages/GitHubTasks'));
 const Forum = lazy(() => import('../pages/Forum'));
 const TrafficMonitor = lazy(() => import('../pages/TrafficMonitor'));
+const AgentTrafficDetail = lazy(() => import('../pages/AgentTrafficDetail'));
 const ChatPanel = lazy(() => import('../pages/ChatPanel'));
 
 // 路由配置
@@ -88,6 +89,11 @@ export const lazyRoutes = [
     path: '/traffic',
     component: TrafficMonitor,
     title: '流量监控',
+  },
+  {
+    path: '/traffic/agent/:agentId',
+    component: AgentTrafficDetail,
+    title: 'Agent 流量详情',
   },
   {
     path: '/chat',
