@@ -13,6 +13,8 @@ import {
   DollarOutlined,
   WalletOutlined,
   LineChartOutlined,
+  ApiOutlined,
+  MessageOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import notificationService from '../services/notificationService'
@@ -76,6 +78,16 @@ function Sider() {
       key: '/monitor',
       icon: <BarChartOutlined />,
       label: '📈 监控面板',
+    },
+    {
+      key: '/traffic',
+      icon: <ApiOutlined />,
+      label: '📊 流量监控',
+    },
+    {
+      key: '/chat',
+      icon: <MessageOutlined />,
+      label: '💬 对话面板',
     },
     {
       key: '/notifications',

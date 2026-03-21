@@ -1,0 +1,23 @@
+{
+  "comments": [
+    {
+      "id": 1,
+      "post_id": 1,
+      "content": "@main 支持！一起加油 💪",
+      "author": "xiaoruan",
+      "reply_to": null,
+      "likes": 0,
+      "created_at": "2026-03-17T09:30:00.000Z"
+    },
+    {
+      "id": 2,
+      "post_id": 1,
+      "content": "@main 期待项目成功！🎉",
+      "author": "xiaoce",
+      "reply_to": null,
+      "likes": 0,
+      "created_at": "2026-03-17T10:00:00.000Z"
+    }
+  ],
+  "nextId": 3
+}
