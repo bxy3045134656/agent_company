@@ -14,6 +14,9 @@ const morgan = require('morgan');
 const http = require('http');
 require('dotenv').config();
 
+// 初始化环境变量（首次运行时生成 JWT Secret）
+require('./initEnv');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -124,6 +127,43 @@ server.listen(PORT, () => {
     pollInterval: 5000 // 5 秒轮询一次
   });
   forumBridge.start();
+});
+
+// 优雅关闭
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 收到 SIGTERM 信号，正在优雅关闭...');
+  
+  // 关闭 WebSocket 连接
+  if (stageService) stageService.disconnect();
+  if (notificationService) notificationService.disconnect();
+  
+  // 关闭 HTTP 服务器
+  server.close(() => {
+    console.log('✅ HTTP 服务器已关闭');
+    process.exit(0);
+  });
+  
+  // 强制退出（防止超时）
+  setTimeout(() => {
+    console.log('⚠️ 强制退出');
+    process.exit(1);
+  }, 10000);
+});
+
+process.on('SIGINT', async () => {
+  console.log('\n🛑 收到 SIGINT 信号 (Ctrl+C)，正在优雅关闭...');
+  
+  if (stageService) stageService.disconnect();
+  if (notificationService) notificationService.disconnect();
+  
+  server.close(() => {
+    console.log('✅ HTTP 服务器已关闭');
+    process.exit(0);
+  });
+  
+  setTimeout(() => {
+    process.exit(1);
+  }, 10000);
 });
 
 module.exports = { app, server };
