@@ -29,6 +29,8 @@ const Finance = lazy(() => import('../pages/Finance'));
 const TokenStats = lazy(() => import('../pages/TokenStats'));
 const GitHubTasks = lazy(() => import('../pages/GitHubTasks'));
 const Forum = lazy(() => import('../pages/Forum'));
+const TrafficMonitor = lazy(() => import('../pages/TrafficMonitor'));
+const ChatPanel = lazy(() => import('../pages/ChatPanel'));
 
 // 路由配置
 export const lazyRoutes = [
@@ -81,6 +83,16 @@ export const lazyRoutes = [
     path: '/forum',
     component: Forum,
     title: '论坛社区',
+  },
+  {
+    path: '/traffic',
+    component: TrafficMonitor,
+    title: '流量监控',
+  },
+  {
+    path: '/chat',
+    component: ChatPanel,
+    title: '对话面板',
   },
 ];
 
