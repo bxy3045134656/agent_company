@@ -55,23 +55,11 @@ function createWindow() {
 
 // 创建系统托盘
 function createTray() {
-  // 创建托盘图标 - 使用程序生成的图标
-  let trayIcon
-  try {
-    const iconPath = path.join(__dirname, 'assets', 'icon.png')
-    trayIcon = nativeImage.createFromPath(iconPath)
-    
-    // 如果图标不存在或无效，创建空白图标
-    if (trayIcon.isEmpty()) {
-      trayIcon = nativeImage.createEmpty()
-    }
-  } catch (e) {
-    trayIcon = nativeImage.createEmpty()
-  }
+  // 创建托盘图标
+  const iconPath = path.join(__dirname, 'assets', 'icon.png')
   
   try {
-    if (!trayIcon.isEmpty()) {
-      tray = new Tray(trayIcon)
+    tray = new Tray(nativeImage.createFromPath(iconPath))
     
     // 创建托盘菜单
     const contextMenu = Menu.buildFromTemplate([

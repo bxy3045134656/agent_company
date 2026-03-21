@@ -154,14 +154,14 @@ feature/xxx ← 功能开发
 
 ### 开发中
 - [ ] ISSUE-010: Electron 项目初始化（网络问题，暂跳过）
-- [ ] ISSUE-012: 流量监控 - 整体数据（页面+API已完成）
+- [ ] ISSUE-012: 流量监控 - 整体数据（页面框架已完成）
 - [ ] ISSUE-014: 对话面板（页面框架已完成）
 
 ### 待完成
 - [ ] ISSUE-004: localhost 硬编码修复（PR 待合并）
 - [ ] ISSUE-007: JWT Secret 随机生成
 - [ ] ISSUE-008: 数据库连接优雅关闭
-- [ ] ISSUE-011: 系统托盘实现（代码已完成）
+- [ ] ISSUE-011: 系统托盘实现
 - [ ] ISSUE-013: 流量监控 - 单Agent数据
 - [ ] ISSUE-015: 打包 exe
 
@@ -175,10 +175,6 @@ feature/xxx ← 功能开发
 - [x] 路由和菜单更新
 
 ### 提交记录
-- `7897689` - fix: Electron 托盘图标容错处理
-- `2e1e687` - feat: 添加对话 API
-- `427034c` - feat: 添加流量监控 API
-- `e4a63de` - feat: 添加 JWT Secret 自动生成和数据库优雅关闭
 - `7abcf40` - feat: 添加 Electron 桌面应用支持
 - `48dfe90` - feat: 添加流量监控和对话面板页面
 
