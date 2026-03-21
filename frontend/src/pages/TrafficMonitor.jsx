@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Row, Col, Statistic, Table, Tag, Button, Space, Spin, Alert, Typography, Select, DatePicker, Line, Area } from 'antd'
+import { Card, Row, Col, Statistic, Table, Tag, Button, Space, Spin, Alert, Typography, Select, DatePicker } from 'antd'
+import { Line, Area } from '@ant-design/charts'
 import { ReloadOutlined, DownloadOutlined, ApiOutlined, ThunderboltOutlined, ClockCircleOutlined } from '@ant-design/icons'
 import axios from 'axios'
 
