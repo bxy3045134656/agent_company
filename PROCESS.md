@@ -175,6 +175,7 @@ feature/xxx ← 功能开发
 - [x] 路由和菜单更新
 
 ### 提交记录
+- `e4a63de` - feat: 添加 JWT Secret 自动生成和数据库优雅关闭
 - `7abcf40` - feat: 添加 Electron 桌面应用支持
 - `48dfe90` - feat: 添加流量监控和对话面板页面
 
