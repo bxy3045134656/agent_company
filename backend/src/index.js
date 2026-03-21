@@ -14,6 +14,9 @@ const morgan = require('morgan');
 const http = require('http');
 require('dotenv').config();
 
+// 初始化环境变量（首次运行时生成 JWT Secret）
+require('./initEnv');
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -64,6 +67,8 @@ const forumRouter = require('./routes/forum'); // 论坛 API
 const dashboardRouter = require('./routes/dashboard'); // 仪表盘 API
 const tokenStatsRouter = require('./routes/tokenStats'); // Token 统计 API
 const agentManagementRouter = require('./routes/agentManagementRoutes'); // Agent 管理 API
+const trafficRouter = require('./routes/traffic'); // 流量监控 API
+const chatRouter = require('./routes/chat'); // 对话 API
 const authRouter = require('./routes/auth'); // 认证 API
 
 // 设置舞台服务
@@ -83,6 +88,8 @@ app.use('/api/v1/finance', financeRouter); // 财务系统 API
 app.use('/api', forumRouter); // 论坛 API（兼容前端 /api/posts 路径）
 app.use('/api/v1/dashboard', dashboardRouter); // 仪表盘 API
 app.use('/api/v1/token-stats', tokenStatsRouter); // Token 统计 API
+app.use('/api/v1/monitor', trafficRouter); // 流量监控 API
+app.use('/api/v1/chat', chatRouter); // 对话 API
 
 // 404 处理
 app.use((req, res) => {
@@ -124,6 +131,43 @@ server.listen(PORT, () => {
     pollInterval: 5000 // 5 秒轮询一次
   });
   forumBridge.start();
+});
+
+// 优雅关闭
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 收到 SIGTERM 信号，正在优雅关闭...');
+  
+  // 关闭 WebSocket 连接
+  if (stageService) stageService.disconnect();
+  if (notificationService) notificationService.disconnect();
+  
+  // 关闭 HTTP 服务器
+  server.close(() => {
+    console.log('✅ HTTP 服务器已关闭');
+    process.exit(0);
+  });
+  
+  // 强制退出（防止超时）
+  setTimeout(() => {
+    console.log('⚠️ 强制退出');
+    process.exit(1);
+  }, 10000);
+});
+
+process.on('SIGINT', async () => {
+  console.log('\n🛑 收到 SIGINT 信号 (Ctrl+C)，正在优雅关闭...');
+  
+  if (stageService) stageService.disconnect();
+  if (notificationService) notificationService.disconnect();
+  
+  server.close(() => {
+    console.log('✅ HTTP 服务器已关闭');
+    process.exit(0);
+  });
+  
+  setTimeout(() => {
+    process.exit(1);
+  }, 10000);
 });
 
 module.exports = { app, server };
